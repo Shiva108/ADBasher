@@ -3,8 +3,8 @@ net="$1"
 subnetStr=${net:0:11}
 echo "$subnetStr" # for dev only
 echo " "
-echo "Syntax: scanADnet.sh 'IP range'" 
-echo "Example: ./scanADnet.sh 192.168.123.1/24"
+echo "Syntax: ADnetscan.sh 'IP range'" 
+echo "Example: ./ADnetscan.sh 192.168.123.1/24"
 echo "Scanning network..."
 echo " "
 echo "Enumerating smb hosts"
@@ -17,6 +17,6 @@ grc nmap -Pn --script smb-vuln* -p139,445 "$1" -oA nmap_"$subnetStr"_smbvuln # s
 grc nmap -sU -sC -sV "$1" -oA nmap_"$subnetStr"_udp # udp scan 
 # Uncomment to include full scan:
 #grc nmap -sSCV -Pn -p- -T4 -vv --version-intensity 5 --script=banner --max-retries 3 --version-all -oA $1 $1
-
+rm nmap_"$subnetStr"* # for dev only
 
 
