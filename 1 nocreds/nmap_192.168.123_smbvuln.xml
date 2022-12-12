@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.92 scan initiated Sun Dec 11 23:07:28 2022 as: nmap -Pn -&#45;script smb-vuln* -p139,445 -oA nmap_192.168.123_smbvuln 192.168.123.1/24 -->
+<nmaprun scanner="nmap" args="nmap -Pn -&#45;script smb-vuln* -p139,445 -oA nmap_192.168.123_smbvuln 192.168.123.1/24" start="1670796448" startstr="Sun Dec 11 23:07:28 2022" version="7.92" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="2" services="139,445"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.1" addrtype="ipv4"/>
+<address addr="44:58:29:C2:2D:4B" addrtype="mac" vendor="Cisco Spvtg"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.18" addrtype="ipv4"/>
+<address addr="E4:5F:01:8E:18:56" addrtype="mac" vendor="Raspberry Pi Trading"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.21" addrtype="ipv4"/>
+<address addr="F0:57:A6:03:92:29" addrtype="mac" vendor="Intel Corporate"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.22" addrtype="ipv4"/>
+<address addr="F0:57:A6:03:92:29" addrtype="mac" vendor="Intel Corporate"/>
+<hostnames>
+</hostnames>
+</hosthint>

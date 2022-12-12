@@ -1,0 +1,1 @@
+# Nmap 7.92 scan initiated Sun Dec 11 23:07:28 2022 as: nmap -sU -sC -sV -oA nmap_192.168.123_udp 192.168.123.1/24

@@ -1,0 +1,10 @@
+# Nmap 7.92 scan initiated Sun Dec 11 23:07:13 2022 as: nmap -sP -oA nmap_192.168.123_ping 192.168.123.1/24
+Host: 192.168.123.1 ()	Status: Up
+Host: 192.168.123.13 ()	Status: Up
+Host: 192.168.123.16 ()	Status: Up
+Host: 192.168.123.18 ()	Status: Up
+Host: 192.168.123.21 ()	Status: Up
+Host: 192.168.123.22 ()	Status: Up
+Host: 192.168.123.56 ()	Status: Up
+Host: 192.168.123.54 ()	Status: Up
+# Nmap done at Sun Dec 11 23:07:22 2022 -- 256 IP addresses (8 hosts up) scanned in 9.07 seconds

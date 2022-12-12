@@ -1,0 +1,25 @@
+# Nmap 7.92 scan initiated Sun Dec 11 23:07:13 2022 as: nmap -sP -oA nmap_192.168.123_ping 192.168.123.1/24
+Nmap scan report for 192.168.123.1
+Host is up (0.0048s latency).
+MAC Address: 44:58:29:C2:2D:4B (Cisco Spvtg)
+Nmap scan report for 192.168.123.13
+Host is up (0.086s latency).
+MAC Address: 16:34:FB:09:06:DB (Unknown)
+Nmap scan report for 192.168.123.16
+Host is up (0.024s latency).
+MAC Address: BC:33:29:20:B5:DC (Sony Interactive Entertainment)
+Nmap scan report for 192.168.123.18
+Host is up (0.0037s latency).
+MAC Address: E4:5F:01:8E:18:56 (Raspberry Pi Trading)
+Nmap scan report for 192.168.123.21
+Host is up (0.095s latency).
+MAC Address: F0:57:A6:03:92:29 (Intel Corporate)
+Nmap scan report for 192.168.123.22
+Host is up (0.092s latency).
+MAC Address: F0:57:A6:03:92:29 (Intel Corporate)
+Nmap scan report for 192.168.123.56
+Host is up (0.080s latency).
+MAC Address: F0:57:A6:03:92:29 (Intel Corporate)
+Nmap scan report for 192.168.123.54
+Host is up.
+# Nmap done at Sun Dec 11 23:07:22 2022 -- 256 IP addresses (8 hosts up) scanned in 9.07 seconds

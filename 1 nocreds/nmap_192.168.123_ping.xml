@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.92 scan initiated Sun Dec 11 23:07:13 2022 as: nmap -sP -oA nmap_192.168.123_ping 192.168.123.1/24 -->
+<nmaprun scanner="nmap" args="nmap -sP -oA nmap_192.168.123_ping 192.168.123.1/24" start="1670796433" startstr="Sun Dec 11 23:07:13 2022" version="7.92" xmloutputversion="1.05">
+<verbose level="0"/>
+<debugging level="0"/>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.1" addrtype="ipv4"/>
+<address addr="44:58:29:C2:2D:4B" addrtype="mac" vendor="Cisco Spvtg"/>
+<hostnames>
+</hostnames>
+<times srtt="4832" rttvar="5000" to="100000"/>
+</host>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.13" addrtype="ipv4"/>
+<address addr="16:34:FB:09:06:DB" addrtype="mac"/>
+<hostnames>
+</hostnames>
+<times srtt="85990" rttvar="85990" to="429950"/>
+</host>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.16" addrtype="ipv4"/>
+<address addr="BC:33:29:20:B5:DC" addrtype="mac" vendor="Sony Interactive Entertainment"/>
+<hostnames>
+</hostnames>
+<times srtt="24434" rttvar="24434" to="122170"/>
+</host>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.18" addrtype="ipv4"/>
+<address addr="E4:5F:01:8E:18:56" addrtype="mac" vendor="Raspberry Pi Trading"/>
+<hostnames>
+</hostnames>
+<times srtt="3687" rttvar="5000" to="100000"/>
+</host>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.21" addrtype="ipv4"/>
+<address addr="F0:57:A6:03:92:29" addrtype="mac" vendor="Intel Corporate"/>
+<hostnames>
+</hostnames>
+<times srtt="94694" rttvar="94694" to="473470"/>
+</host>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.22" addrtype="ipv4"/>
+<address addr="F0:57:A6:03:92:29" addrtype="mac" vendor="Intel Corporate"/>
+<hostnames>
+</hostnames>
+<times srtt="91588" rttvar="59258" to="328620"/>
+</host>
+<host><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.123.56" addrtype="ipv4"/>
+<address addr="F0:57:A6:03:92:29" addrtype="mac" vendor="Intel Corporate"/>
+<hostnames>
+</hostnames>
+<times srtt="80237" rttvar="39820" to="239517"/>
+</host>
+<host><status state="up" reason="localhost-response" reason_ttl="0"/>
+<address addr="192.168.123.54" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+</host>
+<runstats><finished time="1670796442" timestr="Sun Dec 11 23:07:22 2022" summary="Nmap done at Sun Dec 11 23:07:22 2022; 256 IP addresses (8 hosts up) scanned in 9.07 seconds" elapsed="9.07" exit="success"/><hosts up="8" down="248" total="256"/>
+</runstats>
+</nmaprun>

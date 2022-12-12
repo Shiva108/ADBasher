@@ -1,0 +1,1 @@
+# Nmap 7.92 scan initiated Sun Dec 11 23:07:22 2022 as: nmap -sV -Pn --top-ports 50 --open -oA nmap_192.168.123_quick 192.168.123.1/24
