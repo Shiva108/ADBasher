@@ -1,1 +1,0 @@
-# Nmap 7.92 scan initiated Sun Dec 11 23:07:28 2022 as: nmap -Pn --script smb-vuln* -p139,445 -oA nmap_192.168.123_smbvuln 192.168.123.1/24
