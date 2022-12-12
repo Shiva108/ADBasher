@@ -2,4 +2,4 @@
 echo " "
 sudo apt update && apt autoremove && apt autoclean 
 # sudo uname -a
-sudo apt install grc
+sudo apt install grc crackmapexec
