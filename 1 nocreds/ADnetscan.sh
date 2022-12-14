@@ -1,6 +1,6 @@
 #!/bin/bash
 net="$1"
-subnetStr=${net:0:11}
+subnetStr=${net:0:10}
 echo "$subnetStr" # for dev only
 echo " "
 echo "Syntax: ADnetscan.sh 'IP range'" 
@@ -8,7 +8,7 @@ echo "Example: ./ADnetscan.sh 192.168.123.1/24"
 echo "Scanning network..."
 echo " "
 echo "Enumerating smb hosts"
-crackmapexec smb — gen-relay-list smb_targets_"$subnetStr".txt "$1"
+# crackmapexec smb — gen-relay-list smb_targets_"$subnetStr".txt "$1"
 echo " "
 echo "Finding vulnerable hosts with nmap"
 grc nmap -sP "$1" -oA nmap_"$subnetStr"_ping # ping scan
