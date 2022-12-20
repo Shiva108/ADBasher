@@ -26,7 +26,6 @@ grc nmap -sU -sC -sV "$1" -oA nmap_"$subnetStr"_udp # udp scan
  rm nmap_"$subnetStr"* # for dev only
 
 # Additional nmap information gathering using nse
-
 # sudo nmap -p 3389 --script rdp-ntlm-info "$2"
 # sudo nmap -sSC -Pn --script=*-ntlm-info -p 23,25,80,3389 "$2"
 # sudo nmap -sSCV --script=*-ntlm-info --script-args http-ntlm-info.root=/ews/ -p 443,587,993 "$2"
