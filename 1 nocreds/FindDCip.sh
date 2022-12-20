@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
 echo " "
 echo "Syntax: FindDCip 'interface' 'domain name'" 
 echo "Example: ./FindDCip.sh eth0 mydomain.local"

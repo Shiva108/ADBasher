@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
 echo " "
 echo "Syntax: ldapenum.sh 'DC IP address'" 
 echo "Example: ./ldapenum.sh 10.10.10.10"

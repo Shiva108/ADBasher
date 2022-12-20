@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
 echo " "
 echo "Syntax: ADpoison 'interface' 'domain" 
 echo "Example: ./ADpoison.sh 'eth0' 'domain.local' "

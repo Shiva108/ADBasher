@@ -1,6 +1,11 @@
 #!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
 net="$1"
-subnetStr=${net:0:10}
+subnetStr=${net:0:13}
 echo "$subnetStr" # for dev only
 echo " "
 echo "Syntax: ADnetscan.sh 'IP range' 'domain'" 
