@@ -1,7 +1,9 @@
 # ADBasher
 **Under Development**
 
-This repo is a shell-script implementation of the "Active Directory pentesting mind map" found here (also see below):
+An Active Directory penetration testing framework written in shell script.
+
+This repo is a shell-script implementation of the "Active Directory pentesting mind map" found here:
 https://github.com/esidate/pentesting-active-directory
 
 [Orange Pentesting AD](resources/pentest_ad_dark_2022_11.svg)
@@ -9,9 +11,24 @@ https://github.com/esidate/pentesting-active-directory
 Version 0.1.1
 "No credentials" part is "PoC" done.
 
-### Todo:
+**Tested on:**
+Metasploit v6.2.22-dev
+Parrot OS 5.1 (Electro Ara) x86_64 / 6.0.0-2parrot1-amd64
+Kali Rolling (2022.3) x64 2022-08-08
+
+**Todo:**
 Pretty much everything!
 
-### The famous tree:
+**The famous tree:**
 
-Coming here!
+Will be updated...
+
+ * [6 knownvulns](./6 knownvulns)
+ * [5 nopass](./5 nopass)
+ * [4 mitm](./4 mitm)
+ * [resources](./resources)
+ * [2 quick](./2 quick)
+   * [CVE-2020-1472](./2 quick/CVE-2020-1472)
+   * [msfscripts](./2 quick/msfscripts)
+   * [zerologon](./2 quick/zerologon)
+ * [1 nocreds](./1 nocreds)# 
