@@ -21,14 +21,27 @@ echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
 echo " 'Domain' is optional for most scans"
 echo "Scanning network..."
 echo " "
+
+# echo " "
+# echo "Finding vulnerable hosts with nmap"
+# grc nmap -sP "$1" -oA nmap_"$subnetStr"_ping # ping scan
+# grc nmap -sV -Pn --top-ports 50 --open "$1" -oA nmap_"$subnetStr"_quick # quick scan
+# grc nmap -Pn --script smb-vuln* -p139,445 "$1" -oA nmap_"$subnetStr"_smbvuln # search vuln scan
+# grc nmap -sU -sC -sV "$1" -oA nmap_"$subnetStr"_udp # udp scan 
+
+echo " "
 echo "Enumerating smb hosts"
 # crackmapexec smb — gen-relay-list smb_targets_"$subnetStr".txt "$1"
-echo " "
-echo "Finding vulnerable hosts with nmap"
-grc nmap -sP "$1" -oA nmap_"$subnetStr"_ping # ping scan
-grc nmap -sV -Pn --top-ports 50 --open "$1" -oA nmap_"$subnetStr"_quick # quick scan
-grc nmap -Pn --script smb-vuln* -p139,445 "$1" -oA nmap_"$subnetStr"_smbvuln # search vuln scan
-grc nmap -sU -sC -sV "$1" -oA nmap_"$subnetStr"_udp # udp scan 
+
+echo ""
+echo "SMB OS discovery:"
+grc nmap -p139,445 --script smb-os-discovery "$net"
+echo ""
+echo "SMB Security Mode check:"
+grc nmap -p137,139,445 --script smb-security-mode "$net"
+echo "SMB Security Mode check using UDP:"
+grc -sU -p137 --script smb-security-mode "$net"
+
 # Uncomment to include full scan:
 # grc nmap -sSCV -Pn -p- -T4 -vv --version-intensity 5 --script=banner --max-retries 3 --version-all -oA $1 $1
  rm nmap_"$subnetStr"* # for dev only
