@@ -10,3 +10,4 @@ Version 0.2
 "No credentials" part is "PoC" done.
 
 Todo:
+Pretty much everything!
