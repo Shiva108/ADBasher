@@ -4,6 +4,14 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+fi
+
+
+
 net="$1"
 subnetStr=${net:0:13}
 echo "$subnetStr" # for dev only

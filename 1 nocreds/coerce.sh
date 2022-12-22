@@ -4,6 +4,14 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+fi
+
+
+
 echo " "
 echo "Syntax: coerce.sh 'domain' 'listener ip' 'target ip" 
 echo "Example: ./coerce.sh domain.local 10.10.10.10 10.10.10.11"

@@ -4,6 +4,11 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+fi
+
 echo " "
 echo "Syntax: ldapenum.sh 'DC IP address'" 
 echo "Example: ./ldapenum.sh 10.10.10.10"

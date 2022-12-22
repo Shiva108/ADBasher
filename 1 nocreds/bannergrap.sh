@@ -4,6 +4,14 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+fi
+
+
+
 echo " "
 echo "Syntax: bannergrap.sh IP PORT" 
 echo "Example: ./bannergrap.sh 10.10.10.10 22"

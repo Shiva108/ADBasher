@@ -6,6 +6,11 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+fi
+
 # python3 zerologon.py NETBIOS_NAME X.X.X.X
 # Scans the target for the vulnerability
 # python3 zerologon.py NETBIOS_NAME X.X.X.X -exploit
