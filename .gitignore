@@ -13,5 +13,4 @@
 1 nocreds/nmap_192.168.123.1_udp.xml
 2 quick/CVE-2020-1472
 2 quick/zerologon
-2 quick/CVE-2020-1472
 .gitignore
