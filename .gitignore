@@ -11,3 +11,4 @@
 1 nocreds/nmap_192.168.123.1_udp.gnmap
 1 nocreds/nmap_192.168.123.1_udp.nmap
 1 nocreds/nmap_192.168.123.1_udp.xml
+2 quick/CVE-2020-1472
