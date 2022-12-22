@@ -11,8 +11,9 @@ fi
 # python3 zerologon.py NETBIOS_NAME X.X.X.X -exploit
 
 echo " "
+echo "Scans the target for the vulnerability"
 echo "Syntax: zeroscan.sh 'DC netbios name' 'DC IP'" 
 echo "Example: ./zeroscan.sh 192.168.123.1/24 10.10.10.20"
-echo "Hint: DC netbios name and IP run xx and xx found in '1 nocreds/ '"
+echo "Hint: DC netbios name and IP run 'ADnetscan.sh' and 'FindDCip.sh' found in '1 nocreds/ '"
 echo " "
 python3 ./zerologon/zerologon.py "$1" "$2"
