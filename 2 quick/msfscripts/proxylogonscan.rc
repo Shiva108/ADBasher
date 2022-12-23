@@ -1,7 +1,4 @@
-
 workspace -a adbasher
-set RHOST 192.168.123.22
-set RHOSTS 192.168.123.22
 use auxiliary/scanner/http/exchange_proxylogon
 exploit -j -z
-sessions
+
