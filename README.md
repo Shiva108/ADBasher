@@ -10,15 +10,18 @@ https://github.com/esidate/pentesting-active-directory
 
 Version 0.1.1
 "No credentials" part is "PoC" done.
+-
 
 **Tested on:**
 Metasploit v6.2.22-dev
 Parrot OS 5.1 (Electro Ara) x86_64 / 6.0.0-2parrot1-amd64
 Kali Rolling (2022.3) x64 2022-08-08
 
+-
 **Todo:**
 Pretty much everything!
 
+-
 **The famous tree:**
 
 Will be updated...
