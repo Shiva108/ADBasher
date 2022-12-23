@@ -4,13 +4,10 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-
 if [ $# -eq 0 ]
   then
     echo "No arguments supplied"
 fi
-
-
 
 echo " "
 echo "Syntax: ADpoison 'interface' 'domain" 
