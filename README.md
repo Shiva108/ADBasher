@@ -6,7 +6,7 @@ An Active Directory penetration testing framework written in shell script.
 This repo is a shell-script implementation of the "Active Directory pentesting mind map" found here:
 https://github.com/esidate/pentesting-active-directory
 
-[Orange Pentesting AD](./resources/pentest_ad_dark_2022_11.svg)
+![Orange Pentesting AD](/resources/pentest_ad_dark_2022_11.svg "Orange Pentesting AD")
 
 Version 0.1.1
 * "No credentials" part is "PoC" done.
