@@ -1,19 +1,23 @@
 #!/bin/bash
+
+# Check if the user is running the script with root privileges
 if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
+then
+  echo "Please run as root"
   exit
 fi
 
-net="$1"
-subnetStr=${net:0:13}
-echo "$subnetStr" # for dev only
-echo " "
-echo "Syntax: ADnetscan.sh 'IP range' 'domain'" 
-echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
-echo " 'Domain' is optional for most scans"
-echo "Scanning network..."
-echo " "
-echo "Enumerating smb hosts"
-# crackmapexec smb — gen-relay-list smb_targets_"$subnetStr".txt "$1"
-echo " "
-echo "Finding vulnerable hosts with nmap"
+# Check if the required number of arguments was provided
+if [ $# -lt 1 ]
+then
+  echo " "
+  echo "Syntax: proxylogon.sh 'exchange server ip'" 
+  echo "Example: ./proxylogon.sh 10.10.10.10"
+  echo " "
+    exit
+fi
+
+echo "Starting MSF and running msfscripts/proxylogonscan.rc"
+msfdb start
+msfconsole -q -x "setg RHOSTS $1;resource ./msfscripts/proxylogonscan.rc"
+
