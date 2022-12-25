@@ -12,6 +12,8 @@ Version 0.1.1
 * "No credentials" part is "PoC" done.
 
 **Tested on:**
+* zsh 5.8 (x86_64-debian-linux-gnu)
+* GNU bash, version 5.1.4(1)-release
 * Metasploit v6.2.22-dev
 * Parrot OS 5.1 (Electro Ara) x86_64 / 6.0.0-2parrot1-amd64
 * Kali Rolling (2022.3) x64 2022-08-08
