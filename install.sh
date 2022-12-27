@@ -28,8 +28,8 @@ curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list'
 # Install PowerShell
 sudo apt update && sudo apt install -y powershell
-# Start PowerShell
-# pwsh
+# Send command to pwsh for installing pwsh module
+eval "pwsh -c {Install-Module -Name WindowsCompatibility}"
 
 sudo chmod -R +x ./*.{sh,py}
 sudo cat ./README.md | more

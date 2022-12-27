@@ -11,7 +11,8 @@ https://github.com/esidate/pentesting-active-directory and seen here:
 Version 0.1.1
 * "No credentials" part is "PoC" done.
 
-**Tested on:**
+**Tested with:**
+* PowerShell 7.2.1 (for linux)
 * zsh 5.8 (x86_64-debian-linux-gnu)
 * GNU bash, version 5.1.4(1)-release
 * Metasploit v6.2.22-dev
