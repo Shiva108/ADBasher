@@ -13,4 +13,4 @@ echo ""
 echo "Syntax: gethash 'domain' 'usernamesfile'" 
 echo "Example: ./gethash.sh mydomain.local usernames.txt"
 echo " "
-python GetNPUsers.py "$1"/-usersfile "$2" -format hashcat -outputfile hashes."$1".txt
+python /usr/local/bin/GetNPUsers.py "$1"/-usersfile "$2" -format hashcat -outputfile hashes."$1".txt

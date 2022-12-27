@@ -16,3 +16,4 @@ notes.md
 .gitignore
 launch.json
 prep.sh
+.vscode
