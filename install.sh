@@ -17,6 +17,7 @@ sudo apt install grc crackmapexec impacket-scripts msfpc
 echo ""
 echo "Installing Powershell for Linux "
 echo " "
+# If you wish to download instead: https://github.com/PowerShell/PowerShell/releases/tag/v7.3.1
 # Install system components
 sudo apt update  && sudo apt install -y curl gnupg apt-transport-https
 # Import the public repository GPG keys
