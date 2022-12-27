@@ -14,5 +14,19 @@ sudo apt install grc crackmapexec impacket-scripts msfpc
 # sudo git clone https://github.com/dirkjanm/CVE-2020-1472.git
 # sudo git clone https://github.com/rth0pper/zerologon.git
 # cd .. || exit
+echo ""
+echo "Installing Powershell for Linux "
+echo " "
+# Install system components
+sudo apt update  && sudo apt install -y curl gnupg apt-transport-https
+# Import the public repository GPG keys
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+# Register the Microsoft Product feed
+sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list'
+# Install PowerShell
+sudo apt update && sudo apt install -y powershell
+# Start PowerShell
+# pwsh
+
 sudo chmod -R +x ./*.{sh,py}
 sudo cat ./README.md | more
