@@ -8,6 +8,7 @@ echo "ADBasher Installer, tested on Kali and Parrot"
 sudo apt install --fix-missing -y
 sudo apt update && apt autoremove && apt autoclean
 echo "Current OS version is:"
+sleep 3
 sudo uname -a
 sudo apt install grc crackmapexec impacket-scripts msfpc
 
@@ -19,6 +20,7 @@ sudo apt install grc crackmapexec impacket-scripts msfpc
 echo ""
 echo "Installing Powershell for Linux "
 echo " "
+sleep 3
 # If you wish to download instead: https://github.com/PowerShell/PowerShell/releases/tag/v7.3.1
 # Install system components
 sudo apt update  && sudo apt install -y curl gnupg apt-transport-https
@@ -31,5 +33,5 @@ sudo apt update && sudo apt install -y powershell
 # Send command to pwsh for installing pwsh module
 eval "pwsh -c {Install-Module -Name WindowsCompatibility}"
 
-sudo chmod -R +x ./*.{sh,py}
+sudo chmod -R +x ./*.sh
 sudo cat ./README.md | more
