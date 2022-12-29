@@ -8,8 +8,8 @@ echo "ADBasher Installer, tested on Kali and Parrot"
 sudo apt install --fix-missing -y
 sudo apt update && apt autoremove && apt autoclean
 echo "Current OS version is:"
-sleep 3
 sudo uname -a
+sleep 3
 sudo apt install grc crackmapexec impacket-scripts msfpc
 
 # cd 2\ quick/ || exit
