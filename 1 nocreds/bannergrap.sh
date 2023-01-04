@@ -13,9 +13,6 @@ if [ $# -eq 0 ]
     echo " "
 fi
 
-
-
-
 rm ./*.tmp # for dev only
 sleep 5 | telnet "$1" "$2" > telgrap_"$1"_"$2".tmp
 # wget "$1":"$2" -q -S | tee wgetgrap_"$1"_"$2".tmp
