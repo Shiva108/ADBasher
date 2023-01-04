@@ -4,7 +4,6 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-
 if [ $# -eq 0 ]
   then
     echo " "
@@ -14,7 +13,6 @@ if [ $# -eq 0 ]
     echo "Scanning network..."
     echo " "
 fi
-
 
 
 net="$1"
