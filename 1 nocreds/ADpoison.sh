@@ -11,7 +11,6 @@ if [ $# -eq 0 ]
     echo "Example: ./ADpoison.sh 'eth0' 'domain.local' "
 fi
 
-
 echo "Starting MiTM6 on domain: " "$1"
 # echo "xxx"
 mitm6 -i "$2" -d "$1" -l "$1"
