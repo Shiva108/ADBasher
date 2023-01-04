@@ -14,14 +14,10 @@ if [ $# -eq 0 ]
     echo " "
 fi
 
-
 net="$1"
 subnetStr=${net:0:13}
 echo "$subnetStr" # for dev only
 echo " "
-echo "Syntax: ADnetscan.sh 'IP range' 'domain'" 
-echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
-echo " 'Domain' is optional for most scans"
 echo "Scanning network..."
 echo " "
 
