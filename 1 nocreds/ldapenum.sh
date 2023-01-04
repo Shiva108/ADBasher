@@ -6,12 +6,11 @@ fi
 
 if [ $# -eq 0 ]
   then
-    echo "No arguments supplied"
+    echo " "
+    echo "Syntax: ldapenum.sh 'DC IP address'" 
+    echo "Example: ./ldapenum.sh 10.10.10.10"
 fi
 
-echo " "
-echo "Syntax: ldapenum.sh 'DC IP address'" 
-echo "Example: ./ldapenum.sh 10.10.10.10"
 rm ldapsearch_*.txt  nmap_ldapenum_* # for dev only
 echo "Enumerating LDAP" "$1"
 echo "Nmap LDAP enum..."

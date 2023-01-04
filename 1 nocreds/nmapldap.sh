@@ -6,13 +6,11 @@ fi
 
 if [ $# -eq 0 ]
   then
-    echo "No arguments supplied"
+    echo ""
+    echo "Syntax: smbscan 'DC IP address'" 
+    echo "Example: ./smbscan.sh 10.10.10.10"
+    echo " "
 fi
-
-echo ""
-echo "Syntax: smbscan 'DC IP address'" 
-echo "Example: ./smbscan.sh 10.10.10.10"
-echo " "
 
 echo "=========================="
 echo "Using anon creds"

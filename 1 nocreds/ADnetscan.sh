@@ -7,7 +7,12 @@ fi
 
 if [ $# -eq 0 ]
   then
-    echo "No arguments supplied"
+    echo " "
+    echo "Syntax: ADnetscan.sh 'IP range' 'domain'" 
+    echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
+    echo " 'Domain' is optional for most scans"
+    echo "Scanning network..."
+    echo " "
 fi
 
 

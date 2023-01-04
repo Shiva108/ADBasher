@@ -4,19 +4,18 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-
 if [ $# -eq 0 ]
   then
-    echo "No arguments supplied"
+    echo " "
+    echo "Syntax: bannergrap.sh IP PORT" 
+    echo "Example: ./bannergrap.sh 10.10.10.10 22"
+    echo "Only works for open ports i.e. run masscan or nmap first"
+    echo " "
 fi
 
 
 
-echo " "
-echo "Syntax: bannergrap.sh IP PORT" 
-echo "Example: ./bannergrap.sh 10.10.10.10 22"
-echo "Only works for open ports i.e. run masscan or nmap first"
-echo " "
+
 rm ./*.tmp # for dev only
 sleep 5 | telnet "$1" "$2" > telgrap_"$1"_"$2".tmp
 # wget "$1":"$2" -q -S | tee wgetgrap_"$1"_"$2".tmp
