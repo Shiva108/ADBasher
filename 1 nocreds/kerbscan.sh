@@ -10,4 +10,4 @@ if [ $# -eq 0 ]
     echo "eg ./kerbscan.sh attack.local THM-AD"
 fi
 
-grc nmap -Pn -p 88 --script krb5-enum-users --script-args krb5-enum-users.realm=$2 -oX "nmap_kerb_$1" "$1"
+grc nmap -Pn -p 88 --script krb5-enum-users --script-args krb5-enum-users.realm="$2" -oX "nmap_kerb_$1" "$1"
