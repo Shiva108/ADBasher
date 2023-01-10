@@ -17,7 +17,7 @@ sudo apt install grc crackmapexec impacket-scripts msfpc libsasl2-dev python-dev
 # sudo git clone https://github.com/rth0pper/zerologon.git
 # cd .. || exit
 
-cd 3\ nopass || exit
+cd 3\ nopass/spray/ || exit
 git clone https://github.com/Hackndo/sprayhound.git
 cd sprayhound || exit
 pip install -r requirements.txt
