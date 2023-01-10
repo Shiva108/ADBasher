@@ -10,12 +10,19 @@ sudo apt update && apt autoremove && apt autoclean
 echo "Current OS version is:"
 sudo uname -a
 sleep 3
-sudo apt install grc crackmapexec impacket-scripts msfpc
+sudo apt install grc crackmapexec impacket-scripts msfpc libsasl2-dev python-dev libldap2-dev libssl-dev
 
 # cd 2\ quick/ || exit
 # sudo git clone https://github.com/dirkjanm/CVE-2020-1472.git
 # sudo git clone https://github.com/rth0pper/zerologon.git
 # cd .. || exit
+
+cd 3\ nopass || exit
+git clone https://github.com/Hackndo/sprayhound.git
+cd sprayhound || exit
+pip install -r requirements.txt
+python3 setup.py install
+cd .. || exit
 
 echo ""
 echo "Installing Powershell for Linux "

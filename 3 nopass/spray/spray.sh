@@ -10,6 +10,8 @@ if [ $# -eq 0 ]
 fi
 
 echo ""
-echo "Syntax: smbscan 'DC IP address'" 
-echo "Example: ./smbscan.sh 10.10.10.10"
+echo "Syntax: spray.sh 'usersnamefile' 'domain name' 'DC IP address'" 
+echo "Example: ./spray.sh users.txt mydomain.local 10.10.10.10"
 echo " "
+
+./sprayhound/sprayhound.py -U "$1" -d "$2" -dc "$3"
