@@ -21,7 +21,7 @@ cd 3\ nopass/spray/ || exit
 git clone https://github.com/Hackndo/sprayhound.git
 cd sprayhound || exit
 pip install -r requirements.txt
-python3 setup.py install
+sudo python3 setup.py install
 cd .. || exit
 
 echo ""
