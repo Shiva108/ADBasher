@@ -43,14 +43,9 @@ grc -sU -p137 --script smb-security-mode "$net"
 
 # Uncomment to include full scan:
 # grc nmap -sSCV -Pn -p- -T4 -vv --version-intensity 5 --script=banner --max-retries 3 --version-all -oA $1 $1
- rm nmap_"$subnetStr"* # for dev only
+# rm nmap_"$subnetStr"* # for dev only
 
 # Additional nmap information gathering using nse
 # sudo nmap -p 3389 --script rdp-ntlm-info "$2"
 # sudo nmap -sSC -Pn --script=*-ntlm-info -p 23,25,80,3389 "$2"
 # sudo nmap -sSCV --script=*-ntlm-info --script-args http-ntlm-info.root=/ews/ -p 443,587,993 "$2"
-
-
-
-
-

@@ -1,16 +1,4 @@
 notes.md
-1 nocreds/nmap_192.168.123.1_ping.gnmap
-1 nocreds/nmap_192.168.123.1_ping.nmap
-1 nocreds/nmap_192.168.123.1_ping.xml
-1 nocreds/nmap_192.168.123.1_quick.gnmap
-1 nocreds/nmap_192.168.123.1_quick.nmap
-1 nocreds/nmap_192.168.123.1_quick.xml
-1 nocreds/nmap_192.168.123.1_smbvuln.gnmap
-1 nocreds/nmap_192.168.123.1_smbvuln.nmap
-1 nocreds/nmap_192.168.123.1_smbvuln.xml
-1 nocreds/nmap_192.168.123.1_udp.gnmap
-1 nocreds/nmap_192.168.123.1_udp.nmap
-1 nocreds/nmap_192.168.123.1_udp.xml
 2 quick/CVE-2020-1472
 2 quick/zerologon
 .gitignore
@@ -20,3 +8,4 @@ prep.sh
 1 nocreds/nmap_kerb_
 1 nocreds/PetitPotam
 3 nopass/sprayhound
+.gitignore

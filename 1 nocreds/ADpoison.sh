@@ -13,5 +13,5 @@ fi
 
 echo "Starting MiTM6 on domain: " "$1"
 # echo "xxx"
-mitm6 -i "$2" -d "$1" -l "$1"
+# python /home/e/mitm6/mitm6/mitm6.py -i "$2" -d "$1" -l "$1"
 responder -I "$2" --lm
