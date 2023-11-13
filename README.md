@@ -10,6 +10,9 @@ https://github.com/esidate/pentesting-active-directory and seen here:
 
 ![Orange Pentesting AD](/resources/pentest_ad_dark_2022_11.svg "Orange Pentesting AD")
 
+
+Version 0.1.2
+
 Version 0.1.1
 * "No credentials" part is "PoC" done.
 
