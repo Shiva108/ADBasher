@@ -1,6 +1,8 @@
 # ADBasher
 **Under Development**
 
+[Logo](/resources/ADBasherlogo.png)
+
 An Active Directory penetration testing framework written in shell script.
 
 This repo is a shell-script implementation of the "Active Directory pentesting mind map" found here:
