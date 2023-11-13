@@ -7,16 +7,18 @@ NC='\033[0m' # No Color
 
 # Function to display the usage of the script
 usage() {
-    echo -e "${RED}Syntax:${NC} $0 'IP address' 'username' 'password'"
-    echo -e "${RED}Example:${NC} $0 192.168.1.1 admin 'Password123!'"
+    echo -e "${RED}Syntax:${NC} $0 'IP address' 'username' 'password' ['hash']"
+    echo -e "${RED}Example (password):${NC} $0 192.168.1.1 admin 'Password123'"
+    echo -e "${RED}Example (hash):${NC} $0 192.168.1.1 admin 'aad3b435b51404eeaad3b435b51404ee:ed2b435b51404eeaad3b435b51404ee' hash"
     echo -e "${GREEN}Note:${NC} If the password contains special characters, remember to escape them or enclose them in single quotes."
+    echo -e "${GREEN}Note:${NC} For NT hash, add 'hash' at the end of the command."
     echo ""
     exit 1
 }
 
-# Ensure username and password are provided
-if [ $# -ne 3 ]; then
-    echo -e "${RED}Error:${NC} Incorrect number of arguments. Username and password are required."
+# Check if the minimum arguments are provided
+if [ $# -lt 3 ]; then
+    echo -e "${RED}Error:${NC} Incorrect number of arguments."
     usage
 fi
 
@@ -24,22 +26,22 @@ fi
 ipaddress=$1
 username=$2
 password=$3
-outputfile="${ipaddress}_enumeration.txt"
+mode=${4:-password} # Default mode is password
+outputfile="${ipaddress}_rpcclient_connection.txt"
 
 # Inform the user about the actions to be taken
-echo -e "${GREEN}Running enumeration tools on IP address:${NC} $ipaddress"
+echo -e "${GREEN}Attempting to connect with rpcclient...${NC}"
 echo -e "${GREEN}Output will be saved to:${NC} $outputfile"
 
-# Run enum4linux with provided username and password
-echo -e "${GREEN}Running enum4linux...${NC}"
-enum4linux -a -u "$username" -p "$password" "$ipaddress" | tee --append "$outputfile"
+# Choose connection method based on the presence of the fourth argument
+if [ "$mode" == "hash" ]; then
+    # NT hash authentication
+    echo -e "${GREEN}Using NT hash...${NC}"
+    rpcclient //"$ipaddress" -U "$username%$password" --pw-nt-hash | tee "$outputfile"
+else
+    # Plain password authentication
+    echo -e "${GREEN}Using username and password...${NC}"
+    rpcclient -U "$username%$password" "$ipaddress" | tee "$outputfile"
+fi
 
-# Run enum4linux with provided username and password
-echo -e "${GREEN}Running enum4linux-ng...${NC}"
-enum4linux -A -u "$username" -p "$password" "$ipaddress" | tee --append "$outputfile"
-
-# Run nmap with provided IP address
-echo -e "${GREEN}Running nmap for SMB enumeration...${NC}"
-nmap --script "safe or smb-enum-*" -p 445 "$ipaddress" | tee --append "$outputfile"
-
-echo -e "${GREEN}Enumeration complete.${NC}"
+echo -e "${GREEN}Connection attempt complete!!!.${NC}"
