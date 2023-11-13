@@ -1,0 +1,7 @@
+smbclient -L //hostname -U domain\\username
+
+
+# Mount a Share:Create a mount point and mount the Windows share to this location:
+
+sudo mkdir /mnt/share
+sudo mount -t cifs -o username=domain\\username //hostname/share /mnt/share

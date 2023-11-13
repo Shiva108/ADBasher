@@ -1,0 +1,14 @@
+Authentication with Kerberos
+Install Kerberos:
+
+On Debian-based systems: sudo apt-get install krb5-user
+On Red Hat-based systems: sudo yum install krb5-workstation
+
+Configure Kerberos:
+Edit /etc/krb5.conf to include your Windows domain information.
+
+Get a Kerberos Ticket:
+Use kinit to get a Kerberos ticket for authentication:
+
+
+kinit username@DOMAIN.COM
