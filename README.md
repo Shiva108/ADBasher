@@ -1,7 +1,7 @@
 # ADBasher
 **Under Development**
 
-[Logo](/resources/ADBasherlogo.png " ")
+[Logo](https://github.com/Shiva108/ADBasher/blob/main/resources/ADBasherlogo.png " ")
 
 An Active Directory penetration testing framework written in shell script.
 
