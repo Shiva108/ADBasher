@@ -1,7 +1,7 @@
 # ADBasher
 **Under Development**
 
-![Logo](/resources/ADBasherlogo.png " ")
+![Logo](/resources/ADBasherlogo.resized.png " ")
 
 An Active Directory penetration testing framework written in shell script.
 
