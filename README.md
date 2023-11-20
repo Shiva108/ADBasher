@@ -2,7 +2,7 @@
 **Under Development**
 
 <div align="center">
-    <img src="/resources/ADBasherlogo.resized.png" alt="Logo" width="200"> <!-- Adjust the width as needed -->
+    <img src="/resources/ADBasherlogo.png" alt="Logo" width="200"> <!-- Adjust the width as needed -->
 </div>
 
 An Active Directory penetration testing framework written in shell script.
