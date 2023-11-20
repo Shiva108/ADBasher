@@ -31,12 +31,46 @@ Version 0.1.1
 
 Will be updated...
 
- * [6 knownvulns]
- * [5 nopass]
- * [4 mitm]
- * [resources]
- * [2 quick]
-   * [CVE-2020-1472]
-   * [msfscripts]
-   * [zerologon]
- * [1 nocreds]
+*|-- 1 nocreds
+*|   |-- 1 nocreds/ADnetscan.sh
+*|   |-- 1 nocreds/ADpoison.sh
+*|   |-- 1 nocreds/bannergrap.sh
+*|   |-- 1 nocreds/Coercer
+*|   |-- 1 nocreds/coerce.sh
+*|   |-- 1 nocreds/findcertserv.sh
+*|   |-- 1 nocreds/FindDCip.sh
+*|   |-- 1 nocreds/kerbscan.sh
+*|   |-- 1 nocreds/ldapenum.sh
+*|   |-- 1 nocreds/nmapldap.sh
+*|   |-- 1 nocreds/PetitPotam
+*|   `-- 1 nocreds/smbscan.sh
+*|-- 2 quick
+*|   |-- 2 quick/CVE-2020-1472
+*|   |-- 2 quick/eternalblue.sh
+*|   |-- 2 quick/log4shell.sh
+*|   |-- 2 quick/msfscripts
+*|   |-- 2 quick/proxylogon.sh
+*|   |-- 2 quick/proxyshell.sh
+*|   |-- 2 quick/zerologon
+*|   |-- 2 quick/zeroscanmsf.sh
+*|   `-- 2 quick/zeroscan.sh
+*|-- 3 nopass
+*|   |-- 3 nopass/roast
+*|   `-- 3 nopass/spray
+*|-- 4 mitm
+*|-- 5 knownvulns
+*|-- 6 validcreds
+*|   |-- 6 validcreds/enumAD.sh
+*|   `-- 6 validcreds/rpccon.sh
+*|-- 7 privesc
+*|-- 8 weakADCSconfig
+*|-- adenum.sh
+*|-- install.sh
+*|-- prep.sh
+*|-- rainbow.sh
+*|-- resources
+*|   |-- resources/template.sh
+*|   `-- resources/treemaker.sh
+*`-- restartNM.sh
+
+
