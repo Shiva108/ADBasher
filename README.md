@@ -2,7 +2,7 @@
 **Under Development**
 
 <div align="center">
-    <img src="/resources/ADBasherlogo.png" alt="Logo" width="200"> <!-- Adjust the width as needed -->
+    <img src="/resources/ADBasherlogo.png" alt="Logo" width="300"> <!-- Adjust the width as needed -->
 </div>
 
 An Active Directory penetration testing framework written in shell script.
@@ -77,3 +77,5 @@ Will be updated...
 *`-- restartNM.sh
 ```
 
+## License
+ADBasher is released under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
