@@ -1,51 +1,56 @@
 #!/bin/bash
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
+
+# Check for root privileges
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"
+  exit 1
 fi
 
-if [ $# -eq 0 ]
-  then
-    echo " "
-    echo "Syntax: ADnetscan.sh 'IP range' 'domain'" 
-    echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
-    echo " 'Domain' is optional for most scans"
-    echo "Scanning network..."
-    echo " "
+# Validate input parameters
+if [ $# -lt 1 ]; then
+  echo -e "\nSyntax: ADnetscan.sh 'IP range' ['domain']"
+  echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
+  exit 1
 fi
 
 net="$1"
-subnetStr=${net:0:13}
-echo "$subnetStr" # for dev only
-echo " "
-echo "Scanning network..."
-echo " "
+domain="${2:-}"
 
-# echo " "
-# echo "Finding vulnerable hosts with nmap"
-# grc nmap -sP "$1" -oA nmap_"$subnetStr"_ping # ping scan
-# grc nmap -sV -Pn --top-ports 50 --open "$1" -oA nmap_"$subnetStr"_quick # quick scan
-# grc nmap -Pn --script smb-vuln* -p139,445 "$1" -oA nmap_"$subnetStr"_smbvuln # search vuln scan
-# grc nmap -sU -sC -sV "$1" -oA nmap_"$subnetStr"_udp # udp scan 
+# Extract subnet string
+subnetStr=$(echo "$net" | cut -d'/' -f1)
 
-echo " "
-echo "Enumerating smb hosts"
-# crackmapexec smb — gen-relay-list smb_targets_"$subnetStr".txt "$1"
+# Output directory setup
+outputDir="netscan_results_$subnetStr"
+mkdir -p "$outputDir"
 
-echo ""
-echo "SMB OS discovery:"
-grc nmap -p139,445 --script smb-os-discovery "$net"
-echo ""
-echo "SMB Security Mode check:"
-grc nmap -p137,139,445 --script smb-security-mode "$net"
-echo "SMB Security Mode check using UDP:"
-grc -sU -p137 --script smb-security-mode "$net"
+echo "Scanning network $net..."
 
-# Uncomment to include full scan:
-# grc nmap -sSCV -Pn -p- -T4 -vv --version-intensity 5 --script=banner --max-retries 3 --version-all -oA $1 $1
-# rm nmap_"$subnetStr"* # for dev only
+# Nmap scans
+echo "Running Nmap scans..."
+grc nmap -sP -Pn -T4 "$net" -oA "$outputDir/nmap_${subnetStr}_ping" # ping scan
+grc nmap -sV -Pn -T4 --top-ports 50 --open "$net" -oA "$outputDir/nmap_${subnetStr}_quick" # quick scan
+grc nmap -Pn -T4 --script smb-vuln* -p139,445 "$net" -oA "$outputDir/nmap_${subnetStr}_smbvuln" # SMB vulnerability scan
+# nmap -sU -Pn -sC -sV "$net" -oA "$outputDir/nmap_${subnetStr}_udp" # UDP scan
 
-# Additional nmap information gathering using nse
-# sudo nmap -p 3389 --script rdp-ntlm-info "$2"
-# sudo nmap -sSC -Pn --script=*-ntlm-info -p 23,25,80,3389 "$2"
-# sudo nmap -sSCV --script=*-ntlm-info --script-args http-ntlm-info.root=/ews/ -p 443,587,993 "$2"
+# SMB Enumeration
+echo "Enumerating SMB hosts..."
+crackmapexec smb --gen-relay-list "$outputDir/smb_targets_$subnetStr.txt" "$net"
+
+# SMB OS discovery
+echo "Running SMB OS discovery..."
+grc nmap -Pn -T4 -p139,445 --script smb-os-discovery "$net" -oN "$outputDir/smb_os_discovery_$subnetStr"
+
+# SMB Security Mode check
+echo "Checking SMB Security Mode..."
+grc nmap -Pn -T4 -p137,139,445 --script smb-security-mode "$net" -oN "$outputDir/smb_security_mode_$subnetStr"
+grc nmap -sU -Pn -p137 --script smb-security-mode "$net" -oN "$outputDir/smb_security_mode_udp_$subnetStr"
+
+# Additional Nmap NSE scripts
+if [ -n "$domain" ]; then
+  echo "Running additional Nmap NSE scripts..."
+  grc nmap -Pn -T4 -p 3389 --script rdp-ntlm-info "$domain" -oN "$outputDir/rdp_ntlm_info_$subnetStr"
+  grc nmap -sSC -T4 -Pn --script=*-ntlm-info -p 23,25,80,3389 "$domain" -oN "$outputDir/ntlm_info_$subnetStr"
+  grc nmap -sSCV -T4 -Pn --script=*-ntlm-info --script-args http-ntlm-info.root=/ews/ -p 443,587,993 "$domain" -oN "$outputDir/http_ntlm_info_$subnetStr"
+fi
+
+echo "Scans completed. Results are stored in $outputDir."
