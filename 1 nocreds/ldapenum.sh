@@ -1,24 +1,53 @@
 #!/bin/bash
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
-fi
 
-if [ $# -eq 0 ]
-  then
+
+# Function to display usage
+usage() {
     echo " "
-    echo "Syntax: ldapenum.sh 'DC IP address'" 
+    echo "Syntax: ldapenum.sh 'DC IP address'"
     echo "Example: ./ldapenum.sh 10.10.10.10"
+}
+
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run as root"
+    exit 1
 fi
 
-rm ldapsearch_*.txt  nmap_ldapenum_* # for dev only
-echo "Enumerating LDAP" "$1"
-echo "Nmap LDAP enum..."
-grc nmap -n -Pn -vv -sV --script "ldap* and not brute" "$1" -oA nmap_ldapenum_"$1"  #Using anonymous credentials
-echo "LDAP enum with ldapsearch using anon creds..."
-ldapsearch -x -h "$1" -s base namingcontexts | tee ldapsearch_"$1".txt
+# Validate input parameters
+if [ $# -ne 1 ]; then
+    usage
+    exit 1
+fi
+
+# Validate IP address format
+if ! echo "$1" | grep -E -q "^([0-9]{1,3}\.){3}[0-9]{1,3}$"; then
+    echo "Invalid IP address format."
+    usage
+    exit 1
+fi
+
+TARGET="$1"
+
+# Clear previous results (for development only; comment out or remove for production)
+rm -f ldapsearch_*_"$TARGET".txt nmap_ldapenum_"$TARGET"*
+
+# Perform LDAP Enumeration
+echo "Enumerating LDAP for $TARGET"
+
+# Nmap LDAP Enumeration
+echo "Running Nmap LDAP enumeration..."
+grc nmap -n -Pn -vv -sV --script "ldap* and not brute" "$TARGET" -oA nmap_ldapenum_"$TARGET"
+
+# LDAP Enumeration with ldapsearch
+echo "Running LDAP enumeration with ldapsearch using anonymous credentials..."
+ldapsearch -x -h "$TARGET" -s base namingcontexts | tee ldapsearch_namingcontexts_"$TARGET".txt
+
+# Display Results
 echo "Results:"
-cat nmap_ldapenum_"$1".nmap
-cat ldapsearch_"$1".txt
-cat ldapsearch_"$1".txt | grep "schemaNamingContext:"
-cat ldapsearch_"$1".txt | grep "serverName:"
+cat nmap_ldapenum_"$TARGET".nmap
+cat ldapsearch_namingcontexts_"$TARGET".txt
+grep "schemaNamingContext:" ldapsearch_namingcontexts_"$TARGET".txt
+grep "serverName:" ldapsearch_namingcontexts_"$TARGET".txt
+
+echo "Enumeration completed. Check the output files for detailed results."
