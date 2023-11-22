@@ -7,8 +7,8 @@ fi
 if [ $# -eq 0 ]
   then
     echo " "
-    echo "Syntax: coerce.sh 'domain' 'listener ip' 'target ip" 
-    echo "Example: ./coerce.sh domain.local 10.10.10.10 10.10.10.11"
+    echo "Syntax: petit.sh 'domain' 'listener ip' 'target ip" 
+    echo "Example: ./petit.sh domain.local 10.10.10.10 10.10.10.11"
 fi
 
 echo "coercing with unauthent PetitPotam (CVE-2022-26925)"
