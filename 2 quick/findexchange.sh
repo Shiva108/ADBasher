@@ -2,13 +2,13 @@
 
 # Function to display usage
 usage() {
-    printf "\nSyntax: find_exchange.sh <IP Range>"
-    printf "Example: ./find_exchange.sh 192.168.1.0/24\n"
+    printf "\nSyntax: findexchange.sh <IP Range>\n"
+    printf "Example: ./findexchange.sh 192.168.1.0/24\n\n"
 }
 
 # Check for root privileges
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Please run as root"
+    printf "Please run as root\n"
     exit 1
 fi
 
@@ -19,15 +19,27 @@ if [ $# -ne 1 ]; then
 fi
 
 IP_RANGE="$1"
+OUTPUT_FILE="exchange_scan_results.txt"
 
 # Check for required tool (nmap)
 if ! command -v nmap &> /dev/null; then
-    echo "Error: nmap is not installed."
+    printf "Error: nmap is not installed.\n"
     exit 1
 fi
 
-# Common Exchange Server ports: 25 (SMTP), 80 (HTTP), 443 (HTTPS), 110 (POP3), 995 (POP3S), 143 (IMAP), 993 (IMAPS), 587 (SMTP)
-echo "Scanning for Exchange servers in IP range: $IP_RANGE"
-nmap -p 25,80,443,110,995,143,993,587 --open "$IP_RANGE"
+printf "Scanning for Exchange servers in IP range: %s\n" "$IP_RANGE"
+printf "Scanning IP range: %s\n" "$IP_RANGE" > "$OUTPUT_FILE"
 
-echo "Scan completed."
+# Perform an advanced scan with service detection and SSL checks
+nmap -T4 -p 80,443,25,465,587 --open -sV \
+     --script=http-title,ssl-cert \
+     "$IP_RANGE" | tee -a "$OUTPUT_FILE"
+
+# Check if potential Exchange servers are found
+if grep -qE "(Microsoft-IIS|Exchange|owa|ecp)" "$OUTPUT_FILE" || grep -q "CN=Exchange" "$OUTPUT_FILE"; then
+    printf "\nPotential Exchange servers found. Check %s for details.\n" "$OUTPUT_FILE"
+else
+    printf "\nNo Exchange servers found in the specified IP range.\n"
+fi
+
+printf "Scan completed.\n"
