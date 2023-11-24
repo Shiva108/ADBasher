@@ -1,24 +1,36 @@
 #!/bin/bash
-# Credits to: https://github.com/rth0pper/zerologon
 
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
+# Function to display usage
+usage() {
+    echo -e "\nSyntax: zeroscan.sh <DC NetBIOS name> <DC IP address>"
+    echo "Example: ./zeroscan.sh DC01 192.168.123.1"
+    echo -e "Hint: To find the DC NetBIOS name and IP, run 'ADnetscan.sh' & 'FindDCip.sh' found in '1 nocreds/'\n"
+}
+
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run as root"
+    exit 1
 fi
 
-if [ $# -eq 0 ]
-  then
-    echo "No arguments supplied"
+# Check if the required number of arguments was provided
+if [ $# -ne 2 ]; then
+    echo "No arguments supplied or insufficient arguments provided"
+    usage
+    exit 1
 fi
 
-# python3 zerologon.py NETBIOS_NAME X.X.X.X
+# Check for required script
+if [ ! -f "./zerologon/zerologon.py" ]; then
+    echo "Error: zerologon.py script not found in the expected directory."
+    exit 1
+fi
+
+NETBIOS_NAME="$1"
+DC_IP="$2"
+
 # Scans the target for the vulnerability
-# python3 zerologon.py NETBIOS_NAME X.X.X.X -exploit
+echo "Scanning the target for the Zerologon vulnerability"
+python3 ./zerologon/zerologon.py "$NETBIOS_NAME" "$DC_IP"
 
-echo " "
-echo "Scans the target for the vulnerability"
-echo "Syntax: zeroscan.sh 'DC netbios name' 'DC IP'" 
-echo "Example: ./zeroscan.sh 192.168.123.1/24 10.10.10.20"
-echo "Hint: DC netbios name and IP run 'ADnetscan.sh' & 'FindDCip.sh' found in '1 nocreds/ '"
-echo " "
-python3 ./zerologon/zerologon.py "$1" "$2"
+echo "Scan completed."
