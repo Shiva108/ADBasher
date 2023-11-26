@@ -1,0 +1,2 @@
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
