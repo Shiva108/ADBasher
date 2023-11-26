@@ -13,4 +13,4 @@ echo ""
 echo "Syntax: blind 'DC IP address'" 
 echo "Example: ./blind.sh 10.10.10.10"
 echo " "
-GetUserSPNs.py -request -dc-ip <Domain_Controller_IP> <Domain>/<Username>[:<Password>] -outputfile <output_file_for_hashes>
+GetUserSPNs.py  -request -dc-ip <Domain_Controller_IP> <Domain>/<Username>[:<Password>] -outputfile <output_file_for_hashes>
