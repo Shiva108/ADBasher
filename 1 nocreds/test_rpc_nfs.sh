@@ -24,12 +24,12 @@ enumerate_rpc() {
 # Function to exploit NFS shares
 exploit_nfs() {
     echo "Searching for NFS shares on $TARGET"
-    showmount -e $TARGET
+    showmount -e "$TARGET"
 
     echo "Attempting to mount NFS shares"
     mkdir -p /tmp/nfs_mount
-    for share in $(showmount -e $TARGET | awk '(NR>1) {print $1}'); do
-        mount -o nolock $TARGET:$share /tmp/nfs_mount
+    for share in $(showmount -e "$TARGET" | awk '(NR>1) {print $1}'); do
+        mount -o nolock "$TARGET":"$share" /tmp/nfs_mount
         echo "Contents of $share:"
         ls -lah /tmp/nfs_mount
         umount /tmp/nfs_mount
@@ -39,9 +39,9 @@ exploit_nfs() {
 # Function to check NFS share permissions
 check_nfs_permissions() {
     echo "Checking write permissions on NFS shares of $TARGET"
-    for share in $(showmount -e $TARGET | awk '(NR>1) {print $1}'); do
+    for share in $(showmount -e "$TARGET" | awk '(NR>1) {print $1}'); do
         mkdir -p /tmp/nfs_test
-        mount -o nolock $TARGET:$share /tmp/nfs_test
+        mount -o nolock "$TARGET":"$share" /tmp/nfs_test
         if touch /tmp/nfs_test/test_file; then 
             echo "Write permission on $share"
             rm /tmp/nfs_test/test_file
