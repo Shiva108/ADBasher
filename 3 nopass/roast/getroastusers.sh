@@ -10,6 +10,5 @@ if [ $# -eq 0 ]
 fi
 
 echo ""
-echo "Syntax: smbscan 'DC IP address'" 
-echo "Example: ./smbscan.sh 10.10.10.10"
+echo "Run ADBasher/ADenum.sh to find kerberoastable users" 
 echo " "

