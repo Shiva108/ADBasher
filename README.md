@@ -1,4 +1,4 @@
-#<div align="center">
+# <div align="center">
 
 ![ADBasher Banner](assets/page_header.svg)
 
@@ -13,7 +13,7 @@ _Automated Active Directory Penetration Testing Framework_
 
 ---
 
-## 🚀 NEW: Web Dashboard Available!
+## 🚀 NEW: Web Dashboard Available
 
 ADBasher now includes a **modern web interface** for point-and-click penetration testing!
 
