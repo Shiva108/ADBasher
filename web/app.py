@@ -468,6 +468,35 @@ def handle_campaign_unsubscription(data):
 
 
 # ============================================================================
+# Frontend Routes (Serve React App)
+# ============================================================================
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Serve static assets from React build"""
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'frontend/dist/assets'), filename)
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    """Serve React app for all non-API routes (SPA routing)"""
+    # Don't intercept API routes
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not found'}), 404
+    
+    # Serve index.html for all other routes
+    frontend_dist = os.path.join(os.path.dirname(__file__), 'frontend/dist')
+    
+    # Check if specific file exists in dist
+    file_path = os.path.join(frontend_dist, path)
+    if path and os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(frontend_dist, path)
+    
+    # Otherwise serve index.html (SPA routing)
+    return send_from_directory(frontend_dist, 'index.html')
+
+
+# ============================================================================
 # Main
 # ============================================================================
 

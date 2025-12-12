@@ -45,7 +45,7 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/new" element={<NewCampaign />} />
+            <Route path="/new-campaign" element={<NewCampaign />} />
             <Route
               path="/campaign/:campaignId"
               element={<CampaignDashboard />}
