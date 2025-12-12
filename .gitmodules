@@ -10,3 +10,9 @@
 [submodule "2 quick/zerologon"]
 	path = 2 quick/zerologon
 	url = https://github.com/risksense/zerologon.git
+[submodule "3 nopass/roast/CVE-2022-33679"]
+	path = 3 nopass/roast/CVE-2022-33679
+	url = https://github.com/Bdenneu/CVE-2022-33679.git
+[submodule "3 nopass/spray/sprayhound"]
+	path = 3 nopass/spray/sprayhound
+	url = https://github.com/Hackndo/sprayhound.git
