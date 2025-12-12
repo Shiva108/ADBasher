@@ -54,7 +54,7 @@ That's it! The web interface will guide you through the rest.
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────┐
 │  React Dashboard (Port 3000)        │
 │  - Campaign Wizard                  │
@@ -122,7 +122,7 @@ npm run dev
 
 ### Project Structure
 
-```
+```text
 ADBasher/
 ├── web/
 │   ├── app.py                 # Flask backend
@@ -307,7 +307,7 @@ npm install
 
 ## Screenshots
 
-_(Would include screenshots of wizard, dashboard, findings panel)_
+> Note: Screenshots would include the wizard, dashboard, and findings panel.
 
 ---
 
@@ -338,4 +338,4 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ using Flask, React, and Socket.IO**
+Built with ❤️ using Flask, React, and Socket.IO

@@ -98,7 +98,7 @@ sudo python3 responder.py \
 
 **Attack Modes**:
 
-#### SMB Relay:
+#### SMB Relay
 
 ```bash
 sudo python3 ntlm_relay.py \
@@ -107,7 +107,7 @@ sudo python3 ntlm_relay.py \
   --mode smb
 ```
 
-#### HTTP to SMB Relay:
+#### HTTP to SMB Relay
 
 ```bash
 sudo python3 ntlm_relay.py \
@@ -116,7 +116,7 @@ sudo python3 ntlm_relay.py \
   --mode http
 ```
 
-#### IPv6 Relay (with mitm6):
+#### IPv6 Relay (with mitm6)
 
 ```bash
 sudo python3 ntlm_relay.py \
@@ -155,7 +155,7 @@ sudo python3 ntlm_relay.py \
 
 **Attack Modes**:
 
-#### SMB to SMB (Classic):
+#### SMB to SMB (Classic)
 
 ```bash
 sudo python3 smb_relay.py \
@@ -164,7 +164,7 @@ sudo python3 smb_relay.py \
   --mode smb
 ```
 
-#### SMB to LDAP (Privilege Escalation):
+#### SMB to LDAP (Privilege Escalation)
 
 ```bash
 sudo python3 smb_relay.py \
@@ -174,7 +174,7 @@ sudo python3 smb_relay.py \
   --dc 192.168.1.5
 ```
 
-#### SOCKS Proxy Mode:
+#### SOCKS Proxy Mode
 
 ```bash
 sudo python3 smb_relay.py \
@@ -499,7 +499,7 @@ ifconfig eth0 promisc
 
 ---
 
-##License
+## License
 
 Same as ADBasher framework - Use responsibly and legally.
 
