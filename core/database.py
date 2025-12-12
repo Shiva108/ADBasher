@@ -78,7 +78,7 @@ class DatabaseManager:
     def get_session(self):
         return self.Session()
 
-    def add_target(self, ip, hostname=None, domain=None, os_version=None, is_dc=False):
+    def add_target(self, ip, hostname=None, domain=None, os_version=None, is_dc=False, is_alive=True):
         session = self.get_session()
         try:
             target = session.query(Target).filter_by(ip_address=ip).first()
@@ -88,7 +88,8 @@ class DatabaseManager:
                     hostname=hostname, 
                     domain=domain, 
                     os_version=os_version, 
-                    is_dc=is_dc
+                    is_dc=is_dc,
+                    is_alive=is_alive
                 )
                 session.add(target)
             else:
@@ -97,6 +98,7 @@ class DatabaseManager:
                 if domain: target.domain = domain
                 if os_version: target.os_version = os_version
                 if is_dc: target.is_dc = is_dc
+                target.is_alive = is_alive
             
             session.commit()
             return target
