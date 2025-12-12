@@ -16,3 +16,6 @@
 [submodule "3 nopass/spray/sprayhound"]
 	path = 3 nopass/spray/sprayhound
 	url = https://github.com/Hackndo/sprayhound.git
+[submodule "ADenum"]
+	path = ADenum
+	url = https://github.com/SecuProject/ADenum.git
