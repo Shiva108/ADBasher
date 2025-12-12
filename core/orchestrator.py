@@ -1,4 +1,6 @@
 import os
+import sys
+import subprocess
 import uuid
 import yaml
 import time
@@ -7,7 +9,7 @@ from rich.console import Console
 from rich.progress import Progress
 
 from core.logger import setup_logger, get_logger
-from core.database import DatabaseManager, Target, Credential
+from core.database import DatabaseManager, Target, Credential, Vulnerability
 
 console = Console()
 
@@ -292,7 +294,7 @@ class Orchestrator:
         
         if valid_cred:
             for dc in dcs:
-                logger.info(f"Checking DCSync rights for {valid_cred.username}")
+                self.logger.info(f"Checking DCSync rights for {valid_cred.username}")
                 console.print(f"[cyan]  -> DCSync Check: {valid_cred.username}[/cyan]")
                 
                 cmd = [
