@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    nmap \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY web/requirements.txt /app/web/requirements.txt
+COPY requirements.txt /app/requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r web/requirements.txt
+
+# Copy application code
+COPY . /app
+
+EXPOSE 5000
+
+CMD ["python", "web/app.py"]

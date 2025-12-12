@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./core:/app/core
+      - ./web:/app/web
+      - ./sessions:/app/sessions
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+    command: python web/app.py
+    networks:
+      - adbasher
+
+  frontend:
+    build:
+      context: ./web/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/frontend/src:/app/src
+      - ./web/frontend/public:/app/public
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host
+    networks:
+      - adbasher
+    depends_on:
+      - backend
+
+networks:
+  adbasher:
+    driver: bridge
