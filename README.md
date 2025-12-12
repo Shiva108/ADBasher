@@ -1,6 +1,41 @@
-# ADBasher - Automated Active Directory Penetration Testing Framework
+#<div align="center">
 
-![AD Attack Map](resources/pentest_ad_dark_2022_11.svg)
+![ADBasher Banner](assets/page_header.svg)
+
+# ADBasher
+
+_Automated Active Directory Penetration Testing Framework_
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+</div>
+
+---
+
+## 🚀 NEW: Web Dashboard Available!
+
+ADBasher now includes a **modern web interface** for point-and-click penetration testing!
+
+**Quick Start**:
+
+```bash
+cd web && chmod +x setup.sh && ./setup.sh
+# Choose option 1 (Docker) for fastest setup
+# Dashboard available at: http://localhost:3000
+```
+
+**Features**:
+
+- ✨ 4-step campaign creation wizard
+- 📊 Real-time attack monitoring with WebSocket updates
+- 🔍 Live findings feed with auto-refresh
+- 📄 One-click report generation
+- 🐳 Docker deployment ready
+
+📚 **Full Documentation**: [`web/README.md`](web/README.md) | [`web/QUICKSTART.md`](web/QUICKSTART.md)
+
+---
 
 ## 🎯 Overview
 
