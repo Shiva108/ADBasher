@@ -21,39 +21,62 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class GitHealer:
-    def __init__(self, repo_path=".", dry_run=False, branch="main"):
+    def __init__(self, repo_path=".", dry_run=False, branch="main", auto_commit=False):
         self.repo_path = os.path.abspath(repo_path)
         self.dry_run = dry_run
         self.target_branch = branch
+        self.auto_commit = auto_commit
         self.git_cmd = ["git"]
         
         if not os.path.isdir(os.path.join(self.repo_path, ".git")):
             logger.error(f"Not a valid git repository: {self.repo_path}")
             sys.exit(1)
             
-    def _run_git(self, args, check=False):
-        """Executes a git command in the repo directory."""
+    def _run_git(self, args, check=False, retries=3):
+        """Executes a git command in the repo directory with retry logic for network issues."""
         cmd = self.git_cmd + args
-        try:
-            result = subprocess.run(
-                cmd, 
-                cwd=self.repo_path, 
-                capture_output=True, 
-                text=True, 
-                check=check
-            )
-            return result
-        except subprocess.CalledProcessError as e:
-            logger.debug(f"Command failed: {' '.join(cmd)}\nStderr: {e.stderr}")
-            if check:
-                raise
-            return e
+        attempt = 0
+        
+        while attempt < retries:
+            try:
+                result = subprocess.run(
+                    cmd, 
+                    cwd=self.repo_path, 
+                    capture_output=True, 
+                    text=True, 
+                    check=check
+                )
+                
+                # Check for specific failure patterns that warrant a retry
+                if result.returncode != 0:
+                    err = result.stderr.lower()
+                    if "could not resolve host" in err or "connection timed out" in err or "temporary failure" in err:
+                        logger.warning(f"Network error detected (Updated attempt {attempt+1}/{retries}). Retrying...")
+                        time.sleep(2 ** attempt) # Exponential backoff
+                        attempt += 1
+                        continue
+                    
+                    # Check for fatal auth errors
+                    if "permission denied" in err or "authentication failed" in err:
+                        logger.critical("Authentication failure detected. Cannot proceed autonomously. Please update credentials.")
+                        return result # Return the failure so logic can halt if needed
+
+                return result
+            except subprocess.CalledProcessError as e:
+                logger.debug(f"Command failed: {' '.join(cmd)}\nStderr: {e.stderr}")
+                if check:
+                    raise
+                return e
+            except Exception as e:
+                logger.error(f"Unexpected error executing {cmd}: {e}")
+                return None
+                
+        return result
 
     def check_lock_file(self):
         """Checks for and removes stale git lock files."""
         lock_file = Path(self.repo_path) / ".git" / "index.lock"
         if lock_file.exists():
-            # Check age
             age_seconds = time.time() - lock_file.stat().st_mtime
             if age_seconds > 600: # 10 minutes stale
                 logger.warning(f"Found stale index.lock file ({age_seconds:.0f}s old).")
@@ -85,16 +108,40 @@ class GitHealer:
             issues.append("REBASE_IN_PROGRESS")
         if "Your branch is ahead of" in output:
             issues.append("UNPUSHED_CHANGES")
-        if "Your branch and 'origin/main' have diverged" in output: # simplistic branch check
+        if "Your branch and 'origin/main' have diverged" in output:
              issues.append("DIVERGED_BRANCH")
+        if "Changes not staged for commit" in output or "Untracked files" in output:
+            issues.append("DIRTY_WORKTREE")
              
         return issues
+
+    def handle_uncommitted_changes(self):
+        """Automatically stages and commits uncommitted changes."""
+        if not self.auto_commit:
+            logger.info("Uncommitted changes detected, but --auto-commit is not enabled. Skipping.")
+            return
+
+        logger.info("Handling uncommitted changes...")
+        if self.dry_run:
+            logger.info("[DRY RUN] Would stage and commit all changes.")
+            return
+
+        # Stage all
+        self._run_git(["add", "."])
+        
+        # Commit
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        msg = f"chore(auto): Auto-save uncommitted work at {ts}"
+        res = self._run_git(["commit", "-m", msg])
+        
+        if res.returncode == 0:
+            logger.info(f"Successfully committed changes: '{msg}'")
+        else:
+            logger.error(f"Failed to commit changes: {res.stderr}")
 
     def fix_detached_head(self):
         """Fixes detached HEAD by banking changes and checking out target branch."""
         logger.warning(f"Detected Detached HEAD state.")
-        
-        # identifying current commit
         res = self._run_git(["rev-parse", "--short", "HEAD"])
         current_commit = res.stdout.strip()
         
@@ -104,11 +151,9 @@ class GitHealer:
             logger.info(f"[DRY RUN] Would create backup branch '{backup_branch}' and checkout '{self.target_branch}'.")
             return
 
-        # Create backup branch
         logger.info(f"Creating backup branch: {backup_branch}")
         self._run_git(["branch", backup_branch])
         
-        # Checkout target
         logger.info(f"Checking out {self.target_branch}...")
         res = self._run_git(["checkout", self.target_branch])
         if res.returncode == 0:
@@ -147,7 +192,6 @@ class GitHealer:
         res = self._run_git(["pull", "--rebase"])
         if res.returncode != 0:
             logger.error(f"Pull failed: {res.stderr}")
-            # Identify failure reason?
             if "conflict" in res.stderr.lower():
                 logger.warning("Pull caused conflict. Aborting rebase to restore state.")
                 self._run_git(["rebase", "--abort"])
@@ -169,7 +213,6 @@ class GitHealer:
             if "fetch first" in res.stderr:
                  logger.info("Remote contains work that you do not have. Attempting sync...")
                  self.sync_upstream()
-                 # Retry push? Maybe once.
                  
     def fix_submodules(self):
         """Initializes and updates submodules."""
@@ -188,17 +231,17 @@ class GitHealer:
         """Main execution flow."""
         logger.info("Starting Git Auto-Healer scan...")
         
-        # 1. Check Locks
         self.check_lock_file()
-        
-        # 2. Analyze Status
         issues = self.check_status()
         
+        # Priority 1: Commit work if dirty (so we don't lose it during aborts/checkouts)
+        if "DIRTY_WORKTREE" in issues:
+            self.handle_uncommitted_changes()
+            # refetch status since it changed
+            issues = self.check_status() 
+        
         if not issues:
-            logger.info("No critical state issues detected.")
-            # Even if "healthy", we might want to sync/push?
-            # For "Self-healing", we usually only act on problems, but 
-            # ensuring we are up to date is part of "consistency".
+            logger.info("No critical state issues detected. Ensuring sync.")
             self.sync_upstream()
         
         for issue in issues:
@@ -211,23 +254,26 @@ class GitHealer:
             elif issue == "UNPUSHED_CHANGES":
                 self.push_changes()
             elif issue == "DIVERGED_BRANCH":
-                # Diverged usually means we need to pull --rebase
                 self.sync_upstream()
         
-        # 3. Always check submodules (often neglected)
         self.fix_submodules()
-        
         logger.info("Heal cycle completed.")
 
 def main():
     parser = argparse.ArgumentParser(description="Git Auto-Healer: Unattended Git Resolution Tool")
     parser.add_argument("--path", default=".", help="Path to git repository")
     parser.add_argument("--branch", default="main", help="Target main branch name")
+    parser.add_argument("--auto-commit", action="store_true", help="Automatically commit uncommitted changes")
     parser.add_argument("--dry-run", action="store_true", help="Simulate actions without making changes")
     
     args = parser.parse_args()
     
-    healer = GitHealer(repo_path=args.path, dry_run=args.dry_run, branch=args.branch)
+    healer = GitHealer(
+        repo_path=args.path, 
+        dry_run=args.dry_run, 
+        branch=args.branch,
+        auto_commit=args.auto_commit
+    )
     healer.heal()
 
 if __name__ == "__main__":
