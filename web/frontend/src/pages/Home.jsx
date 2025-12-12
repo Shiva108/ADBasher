@@ -1,50 +1,56 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import axios from 'axios'
-import { PlayCircle, Clock, CheckCircle, XCircle, TrendingUp } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../utils/api";
+import {
+  PlayCircle,
+  Clock,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+} from "lucide-react";
 
 export default function Home() {
-  const [campaigns, setCampaigns] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchCampaigns()
-    const interval = setInterval(fetchCampaigns, 5000) // Auto-refresh every 5s
-    return () => clearInterval(interval)
-  }, [])
+    const fetchCampaigns = async () => {
+      try {
+        const data = await api.get("/campaigns");
+        setCampaigns(data.campaigns || []);
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+        setLoading(false);
+      }
+    };
 
-  const fetchCampaigns = async () => {
-    try {
-      const response = await axios.get('/api/campaigns')
-      setCampaigns(response.data.campaigns)
-      setLoading(false)
-    } catch (error) {
-      console.error('Failed to fetch campaigns:', error)
-      setLoading(false)
-    }
-  }
+    fetchCampaigns();
+    const interval = setInterval(fetchCampaigns, 5000); // Auto-refresh every 5s
+    return () => clearInterval(interval);
+  }, []);
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'running':
-        return <PlayCircle className="h-5 w-5 text-blue-500 animate-pulse" />
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />
-      case 'failed':
-        return <XCircle className="h-5 w-5 text-red-500" />
+      case "running":
+        return <PlayCircle className="h-5 w-5 text-blue-500 animate-pulse" />;
+      case "completed":
+        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
+      case "failed":
+        return <XCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <Clock className="h-5 w-5 text-slate-400" />
+        return <Clock className="h-5 w-5 text-slate-400" />;
     }
-  }
+  };
 
   const formatElapsed = (seconds) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) {
-      return `${hours}h ${minutes}m`
+      return `${hours}h ${minutes}m`;
     }
-    return `${minutes}m`
-  }
+    return `${minutes}m`;
+  };
 
   if (loading) {
     return (
@@ -54,20 +60,26 @@ export default function Home() {
           <p className="mt-4 text-slate-400">Loading campaigns...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Penetration Test Campaigns</h1>
-        <p className="text-slate-400">Manage and monitor Active Directory assessments</p>
+        <h1 className="text-3xl font-bold text-white mb-2">
+          Penetration Test Campaigns
+        </h1>
+        <p className="text-slate-400">
+          Manage and monitor Active Directory assessments
+        </p>
       </div>
 
       {campaigns.length === 0 ? (
         <div className="bg-slate-800 rounded-lg p-12 text-center border border-slate-700">
           <TrendingUp className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">No campaigns yet</h3>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            No campaigns yet
+          </h3>
           <p className="text-slate-400 mb-6">
             Create your first penetration test campaign to get started
           </p>
@@ -140,5 +152,5 @@ export default function Home() {
         </div>
       )}
     </div>
-  )
+  );
 }

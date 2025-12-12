@@ -1,49 +1,87 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { ArrowRight, ArrowLeft, Shield, Target, Settings, Bell, CheckCircle } from 'lucide-react'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Shield,
+  Target,
+  Settings,
+  Bell,
+  CheckCircle,
+} from "lucide-react";
+import { validateCampaignData } from "../utils/validation";
+import {
+  showError,
+  showSuccess,
+  showValidationError,
+  showLoading,
+  dismissToast,
+} from "../utils/toast.jsx";
 
 export default function NewCampaign() {
-  const navigate = useNavigate()
-  const [step, setStep] = useState(1)
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    name: '',
-    domain: '',
-    targets: '',
-    username: '',
-    password: '',
-    attack_profile: 'balanced',
+    name: "",
+    domain: "",
+    targets: "",
+    username: "",
+    password: "",
+    attack_profile: "balanced",
     enable_post_exploit: true,
     enable_lateral_movement: false,
-    notification_email: ''
-  })
+    notification_email: "",
+  });
 
   const updateField = (field, value) => {
-    setFormData({ ...formData, [field]: value })
-  }
+    setFormData({ ...formData, [field]: value });
+    // Clear error for this field when user types
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: undefined });
+    }
+  };
 
   const handleSubmit = async () => {
     try {
       // Convert targets string to array
       const targetsArray = formData.targets
-        .split('\n')
-        .map(t => t.trim())
-        .filter(t => t.length > 0)
+        .split("\n")
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
 
       const payload = {
         ...formData,
-        targets: targetsArray
+        targets: targetsArray,
+      };
+
+      // Validate on frontend before sending
+      const validation = validateCampaignData(formData);
+      if (!validation.valid) {
+        setErrors(validation.errors);
+        // Show first error as toast
+        const firstError = Object.values(validation.errors)[0];
+        showError(firstError);
+        return;
       }
 
-      const response = await axios.post('/api/campaigns', payload)
-      const campaignId = response.data.campaign_id
+      const loadingToast = showLoading("Creating campaign...");
+      const data = await api.post("/campaigns", payload);
+      dismissToast(loadingToast);
+
+      const campaignId = data.campaign_id;
+      showSuccess("Campaign created successfully!");
 
       // Navigate to campaign dashboard
-      navigate(`/campaign/${campaignId}`)
+      navigate(`/campaign/${campaignId}`);
     } catch (error) {
-      alert('Failed to create campaign: ' + (error.response?.data?.error || error.message))
+      showError(
+        "Failed to create campaign: " +
+          (error.response?.data?.error || error.message)
+      );
     }
-  }
+  };
 
   const renderStep = () => {
     switch (step) {
@@ -53,8 +91,12 @@ export default function NewCampaign() {
             <div className="flex items-center space-x-3 mb-6">
               <Shield className="h-8 w-8 text-emerald-500" />
               <div>
-                <h2 className="text-2xl font-bold text-white">Campaign Details</h2>
-                <p className="text-slate-400">Basic information about this assessment</p>
+                <h2 className="text-2xl font-bold text-white">
+                  Campaign Details
+                </h2>
+                <p className="text-slate-400">
+                  Basic information about this assessment
+                </p>
               </div>
             </div>
 
@@ -65,7 +107,7 @@ export default function NewCampaign() {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => updateField('name', e.target.value)}
+                onChange={(e) => updateField("name", e.target.value)}
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:border-emerald-500"
                 placeholder="Q4 2024 Security Assessment"
               />
@@ -78,7 +120,7 @@ export default function NewCampaign() {
               <input
                 type="text"
                 value={formData.domain}
-                onChange={(e) => updateField('domain', e.target.value)}
+                onChange={(e) => updateField("domain", e.target.value)}
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:border-emerald-500"
                 placeholder="victim.local"
               />
@@ -91,7 +133,9 @@ export default function NewCampaign() {
               <input
                 type="email"
                 value={formData.notification_email}
-                onChange={(e) => updateField('notification_email', e.target.value)}
+                onChange={(e) =>
+                  updateField("notification_email", e.target.value)
+                }
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:border-emerald-500"
                 placeholder="pentester@company.com"
               />
@@ -100,7 +144,7 @@ export default function NewCampaign() {
               </p>
             </div>
           </div>
-        )
+        );
 
       case 2:
         return (
@@ -108,8 +152,12 @@ export default function NewCampaign() {
             <div className="flex items-center space-x-3 mb-6">
               <Target className="h-8 w-8 text-emerald-500" />
               <div>
-                <h2 className="text-2xl font-bold text-white">Target Configuration</h2>
-                <p className="text-slate-400">Define attack targets and credentials</p>
+                <h2 className="text-2xl font-bold text-white">
+                  Target Configuration
+                </h2>
+                <p className="text-slate-400">
+                  Define attack targets and credentials
+                </p>
               </div>
             </div>
 
@@ -119,10 +167,10 @@ export default function NewCampaign() {
               </label>
               <textarea
                 value={formData.targets}
-                onChange={(e) => updateField('targets', e.target.value)}
+                onChange={(e) => updateField("targets", e.target.value)}
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:border-emerald-500 font-mono text-sm"
                 rows={6}
-                placeholder={'192.168.1.10\n10.0.0.0/24\ndc01.victim.local'}
+                placeholder={"192.168.1.10\n10.0.0.0/24\ndc01.victim.local"}
               />
               <p className="mt-1 text-sm text-slate-500">
                 One target per line. Supports IPs, CIDR notation, and hostnames.
@@ -137,7 +185,7 @@ export default function NewCampaign() {
                 <input
                   type="text"
                   value={formData.username}
-                  onChange={(e) => updateField('username', e.target.value)}
+                  onChange={(e) => updateField("username", e.target.value)}
                   className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:border-emerald-500"
                   placeholder="Domain\\User"
                 />
@@ -150,7 +198,7 @@ export default function NewCampaign() {
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) => updateField('password', e.target.value)}
+                  onChange={(e) => updateField("password", e.target.value)}
                   className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:border-emerald-500"
                   placeholder="••••••••"
                 />
@@ -159,12 +207,12 @@ export default function NewCampaign() {
 
             <div className="bg-blue-900/20 border border-blue-700 rounded-md p-4">
               <p className="text-sm text-blue-300">
-                💡 <strong>Tip:</strong> Credentials are optional. ADBasher will attempt to discover
-                and compromise credentials automatically.
+                💡 <strong>Tip:</strong> Credentials are optional. ADBasher will
+                attempt to discover and compromise credentials automatically.
               </p>
             </div>
           </div>
-        )
+        );
 
       case 3:
         return (
@@ -172,8 +220,12 @@ export default function NewCampaign() {
             <div className="flex items-center space-x-3 mb-6">
               <Settings className="h-8 w-8 text-emerald-500" />
               <div>
-                <h2 className="text-2xl font-bold text-white">Attack Configuration</h2>
-                <p className="text-slate-400">Select attack modules and OpSec profile</p>
+                <h2 className="text-2xl font-bold text-white">
+                  Attack Configuration
+                </h2>
+                <p className="text-slate-400">
+                  Select attack modules and OpSec profile
+                </p>
               </div>
             </div>
 
@@ -182,14 +234,14 @@ export default function NewCampaign() {
                 Attack Profile
               </label>
               <div className="grid grid-cols-3 gap-4">
-                {['stealth', 'balanced', 'aggressive'].map((profile) => (
+                {["stealth", "balanced", "aggressive"].map((profile) => (
                   <button
                     key={profile}
-                    onClick={() => updateField('attack_profile', profile)}
+                    onClick={() => updateField("attack_profile", profile)}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       formData.attack_profile === profile
-                        ? 'border-emerald-500 bg-emerald-900/20'
-                        : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                        ? "border-emerald-500 bg-emerald-900/20"
+                        : "border-slate-700 bg-slate-800 hover:border-slate-600"
                     }`}
                   >
                     <div className="text-center">
@@ -197,9 +249,9 @@ export default function NewCampaign() {
                         {profile}
                       </div>
                       <div className="text-xs text-slate-400">
-                        {profile === 'stealth' && 'Slow, randomized timing'}
-                        {profile === 'balanced' && 'Recommended for most'}
-                        {profile === 'aggressive' && 'Fast, more detectable'}
+                        {profile === "stealth" && "Slow, randomized timing"}
+                        {profile === "balanced" && "Recommended for most"}
+                        {profile === "aggressive" && "Fast, more detectable"}
                       </div>
                     </div>
                   </button>
@@ -216,13 +268,18 @@ export default function NewCampaign() {
                 <input
                   type="checkbox"
                   checked={formData.enable_post_exploit}
-                  onChange={(e) => updateField('enable_post_exploit', e.target.checked)}
+                  onChange={(e) =>
+                    updateField("enable_post_exploit", e.target.checked)
+                  }
                   className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
                 />
                 <div className="flex-1">
-                  <div className="text-white font-medium">Post-Exploitation</div>
+                  <div className="text-white font-medium">
+                    Post-Exploitation
+                  </div>
                   <div className="text-sm text-slate-400">
-                   BloodHound, secretsdump, LSASS dumping (requires credentials)
+                    BloodHound, secretsdump, LSASS dumping (requires
+                    credentials)
                   </div>
                 </div>
               </label>
@@ -231,7 +288,9 @@ export default function NewCampaign() {
                 <input
                   type="checkbox"
                   checked={formData.enable_lateral_movement}
-                  onChange={(e) => updateField('enable_lateral_movement', e.target.checked)}
+                  onChange={(e) =>
+                    updateField("enable_lateral_movement", e.target.checked)
+                  }
                   className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
                 />
                 <div className="flex-1">
@@ -244,13 +303,14 @@ export default function NewCampaign() {
 
               <div className="bg-amber-900/20 border border-amber-700 rounded-md p-4">
                 <p className="text-sm text-amber-300">
-                  ⚠️ <strong>Note:</strong> Persistence modules are disabled by default. 
-                  They can be manually enabled from the dashboard after careful review.
+                  ⚠️ <strong>Note:</strong> Persistence modules are disabled by
+                  default. They can be manually enabled from the dashboard after
+                  careful review.
                 </p>
               </div>
             </div>
           </div>
-        )
+        );
 
       case 4:
         return (
@@ -258,37 +318,49 @@ export default function NewCampaign() {
             <div className="flex items-center space-x-3 mb-6">
               <CheckCircle className="h-8 w-8 text-emerald-500" />
               <div>
-                <h2 className="text-2xl font-bold text-white">Review & Launch</h2>
-                <p className="text-slate-400">Confirm settings and start campaign</p>
+                <h2 className="text-2xl font-bold text-white">
+                  Review & Launch
+                </h2>
+                <p className="text-slate-400">
+                  Confirm settings and start campaign
+                </p>
               </div>
             </div>
 
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 space-y-4">
               <div>
                 <div className="text-sm text-slate-400">Campaign Name</div>
-                <div className="text-lg text-white font-medium">{formData.name || 'Untitled Campaign'}</div>
+                <div className="text-lg text-white font-medium">
+                  {formData.name || "Untitled Campaign"}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-slate-400">Domain</div>
-                  <div className="text-white">{formData.domain || 'Not specified'}</div>
+                  <div className="text-white">
+                    {formData.domain || "Not specified"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-slate-400">Attack Profile</div>
-                  <div className="text-white capitalize">{formData.attack_profile}</div>
+                  <div className="text-white capitalize">
+                    {formData.attack_profile}
+                  </div>
                 </div>
               </div>
 
               <div>
                 <div className="text-sm text-slate-400 mb-1">Targets</div>
                 <div className="bg-slate-900 rounded p-3 font-mono text-sm text-white max-h-32 overflow-y-auto">
-                  {formData.targets || 'No targets specified'}
+                  {formData.targets || "No targets specified"}
                 </div>
               </div>
 
               <div>
-                <div className="text-sm text-slate-400 mb-2">Enabled Modules</div>
+                <div className="text-sm text-slate-400 mb-2">
+                  Enabled Modules
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-emerald-900/30 text-emerald-400 rounded-full text-sm border border-emerald-700">
                     Reconnaissance
@@ -312,27 +384,28 @@ export default function NewCampaign() {
 
             <div className="bg-red-900/20 border border-red-700 rounded-md p-4">
               <p className="text-sm text-red-300">
-                🚨 <strong>Warning:</strong> This will launch an active penetration test. 
-                Ensure you have proper authorization before proceeding.
+                🚨 <strong>Warning:</strong> This will launch an active
+                penetration test. Ensure you have proper authorization before
+                proceeding.
               </p>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const canProceed = () => {
     if (step === 1) {
-      return formData.name && formData.domain
+      return formData.name && formData.domain;
     }
     if (step === 2) {
-      return formData.targets.trim().length > 0
+      return formData.targets.trim().length > 0;
     }
-    return true
-  }
+    return true;
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -344,8 +417,8 @@ export default function NewCampaign() {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                   i <= step
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-700 text-slate-400'
+                    ? "bg-emerald-600 text-white"
+                    : "bg-slate-700 text-slate-400"
                 }`}
               >
                 {i}
@@ -353,7 +426,7 @@ export default function NewCampaign() {
               {i < 4 && (
                 <div
                   className={`w-24 h-1 ${
-                    i < step ? 'bg-emerald-600' : 'bg-slate-700'
+                    i < step ? "bg-emerald-600" : "bg-slate-700"
                   }`}
                 />
               )}
@@ -404,5 +477,5 @@ export default function NewCampaign() {
         )}
       </div>
     </div>
-  )
+  );
 }

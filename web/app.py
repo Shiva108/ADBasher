@@ -19,6 +19,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from core.orchestrator import Orchestrator
 from core.database import DatabaseManager, Target, Credential, Vulnerability
 
+# Import logging and security utilities
+from logging_config import app_logger, audit_logger, log_campaign_event, log_security_event
+from security import rate_limit, sanitize_html, validate_content_type
+from encryption import encrypt_sensitive_data, decrypt_sensitive_data
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -38,19 +43,26 @@ class CampaignManager:
         self.findings = []
         self.start_time = datetime.now()
         self.orchestrator = None
+        self.stop_flag = threading.Event()  # For graceful shutdown
+        self.thread = None
     
     def start(self):
         """Launch attack campaign in background thread"""
         self.status = "running"
-        thread = threading.Thread(target=self._run_attacks)
-        thread.daemon = True
-        thread.start()
+        self.thread = threading.Thread(target=self._run_attacks)
+        self.thread.daemon = True
+        self.thread.start()
     
     def _run_attacks(self):
         """Execute attack workflow"""
         try:
             # Update phase
             self._update_phase("Reconnaissance", 10)
+            
+            # Check if stopped
+            if self.stop_flag.is_set():
+                self._cleanup()
+                return
             
             # Initialize orchestrator with config
             args_namespace = self._config_to_args()
@@ -61,24 +73,39 @@ class CampaignManager:
             
             # Recon
             self._update_phase("Reconnaissance", 20)
+            if self.stop_flag.is_set():
+                self._cleanup()
+                return
             self.orchestrator.run_recon()
             
             # Credential attacks
             self._update_phase("Credential Attacks", 40)
+            if self.stop_flag.is_set():
+                self._cleanup()
+                return
             self.orchestrator.run_cred_attacks()
             
             # Post-exploitation (if enabled)
             if self.config.get('enable_post_exploit', True):
                 self._update_phase("Post-Exploitation", 60)
+                if self.stop_flag.is_set():
+                    self._cleanup()
+                    return
                 self.orchestrator.run_vuln_analysis()
             
             # Lateral movement (if admin creds)
             if self.config.get('enable_lateral_movement', False):
                 self._update_phase("Lateral Movement", 80)
+                if self.stop_flag.is_set():
+                    self._cleanup()
+                    return
                 self.orchestrator.run_lateral_movement()
             
             # Reporting
             self._update_phase("Generating Report", 95)
+            if self.stop_flag.is_set():
+                self._cleanup()
+                return
             self.orchestrator.run_reporting()
             
             self._update_phase("Complete", 100)
@@ -87,16 +114,34 @@ class CampaignManager:
         except Exception as e:
             self.status = "failed"
             self._broadcast_error(str(e))
+            import traceback
+            print(f"Campaign {self.campaign_id} failed: {traceback.format_exc()}")
+    
+    def _cleanup(self):
+        """Clean up resources on stop"""
+        try:
+            if self.orchestrator and self.orchestrator.db:
+                # Close database connections
+                self.orchestrator.db.close()
+            
+            self.status = "stopped"
+            self._update_phase("Stopped by user", self.progress)
+            
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
     
     def _config_to_args(self):
         """Convert web config to orchestrator args"""
         from argparse import Namespace
         
+        # Decrypt sensitive data for use
+        decrypted_config = decrypt_sensitive_data(self.config)
+        
         args = Namespace()
-        args.target = self.config.get('targets', [])
-        args.username = self.config.get('username')
-        args.password = self.config.get('password')
-        args.domain = self.config.get('domain')
+        args.target = decrypted_config.get('targets', [])
+        args.username = decrypted_config.get('username')
+        args.password = decrypted_config.get('password')  # Now decrypted
+        args.domain = decrypted_config.get('domain')
         args.config_file = None
         
         return args
@@ -131,11 +176,14 @@ class CampaignManager:
         }
         
         if self.orchestrator and self.orchestrator.db:
-            session = self.orchestrator.db.get_session()
-            stats['targets'] = session.query(Target).count()
-            stats['credentials'] = session.query(Credential).count()
-            stats['vulnerabilities'] = session.query(Vulnerability).count()
-            session.close()
+            try:
+                session = self.orchestrator.db.get_session()
+                stats['targets'] = session.query(Target).count()
+                stats['credentials'] = session.query(Credential).count()
+                stats['vulnerabilities'] = session.query(Vulnerability).count()
+                session.close()
+            except Exception as e:
+                print(f"Error getting stats: {e}")
         
         return {
             'campaign_id': self.campaign_id,
@@ -149,10 +197,10 @@ class CampaignManager:
         }
     
     def stop(self):
-        """Stop campaign execution"""
-        self.status = "stopped"
-        # TODO: Implement graceful shutdown of orchestrator
-        self._update_phase("Stopped by user", self.progress)
+        """Stop campaign execution gracefully"""
+        self.stop_flag.set()
+        self.status = "stopping"
+        self._update_phase("Stopping...", self.progress)
 
 
 # ============================================================================
@@ -169,54 +217,114 @@ def health_check():
     })
 
 @app.route('/api/campaigns', methods=['GET'])
+@rate_limit(max_requests=30, window_seconds=60)
 def list_campaigns():
     """List all campaigns"""
-    campaigns = []
-    for campaign_id, manager in active_campaigns.items():
-        campaigns.append(manager.get_status())
-    
-    return jsonify({'campaigns': campaigns})
+    try:
+        campaigns = []
+        for campaign_id, manager in active_campaigns.items():
+            campaigns.append(manager.get_status())
+        
+        return jsonify({'campaigns': campaigns})
+    except Exception as e:
+        app_logger.error(f'Error listing campaigns: {e}')
+        return jsonify({'error': 'Failed to list campaigns'}), 500
 
 @app.route('/api/campaigns', methods=['POST'])
+@rate_limit(max_requests=10, window_seconds=60)
+@validate_content_type('application/json')
 def create_campaign():
     """Create new penetration test campaign"""
-    data = request.json
-    
-    # Validate required fields
-    required_fields = ['name', 'domain', 'targets']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({'error': f'Missing required field: {field}'}), 400
-    
-    # Generate campaign ID
-    campaign_id = str(uuid.uuid4())
-    
-    # Create campaign manager
-    config = {
-        'name': data['name'],
-        'domain': data.get('domain'),
-        'targets': data.get('targets', []),
-        'username': data.get('username'),
-        'password': data.get('password'),
-        'enable_post_exploit': data.get('enable_post_exploit', True),
-        'enable_lateral_movement': data.get('enable_lateral_movement', False),
-        'attack_profile': data.get('attack_profile', 'balanced'),
-        'notification_email': data.get('notification_email')
-    }
-    
-    manager = CampaignManager(campaign_id, config)
-    active_campaigns[campaign_id] = manager
-    
-    # Start campaign
-    manager.start()
-    
-    return jsonify({
-        'campaign_id': campaign_id,
-        'status': 'created',
-        'message': 'Campaign started successfully'
-    }), 201
+    try:
+        data = request.json
+        client_ip = request.remote_addr
+        
+        if not data:
+            log_security_event(audit_logger, 'invalid_request', 'Empty request body', ip_address=client_ip)
+            return jsonify({'error': 'Request body is required'}), 400
+        
+        # Import validation utilities
+        from validation import (
+            validate_campaign_name, validate_domain, validate_targets,
+            validate_username, validate_email, sanitize_string,
+            validate_content_type, log_security_event
+        )
+        
+        # Validate required fields
+        required_fields = ['name', 'domain', 'targets']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Validate campaign name
+        is_valid, error_msg = validate_campaign_name(data['name'])
+        if not is_valid:
+            log_security_event(audit_logger, 'validation_failed', f'Campaign name: {error_msg}', ip_address=client_ip)
+            return jsonify({'error': f'Invalid campaign name: {error_msg}'}), 400
+        
+        # Validate domain
+        is_valid, error_msg = validate_domain(data['domain'])
+        if not is_valid:
+            return jsonify({'error': f'Invalid domain: {error_msg}'}), 400
+        
+        # Validate targets
+        is_valid, error_msg = validate_targets(data['targets'])
+        if not is_valid:
+            return jsonify({'error': f'Invalid targets: {error_msg}'}), 400
+        
+        # Validate optional username
+        if 'username' in data and data['username']:
+            is_valid, error_msg = validate_username(data['username'])
+            if not is_valid:
+                return jsonify({'error': f'Invalid username: {error_msg}'}), 400
+        
+        # Validate optional email
+        if 'notification_email' in data and data['notification_email']:
+            is_valid, error_msg = validate_email(data['notification_email'])
+            if not is_valid:
+                return jsonify({'error': f'Invalid email: {error_msg}'}), 400
+        
+        # Generate campaign ID
+        campaign_id = str(uuid.uuid4())
+        
+        # Create campaign manager with sanitized inputs
+        config = {
+            'name': sanitize_string(data['name'], 100),
+            'domain': sanitize_string(data['domain'], 253),
+            'targets': [sanitize_string(t, 253) for t in data['targets']],
+            'username': sanitize_string(data.get('username', ''), 256) if data.get('username') else None,
+            'password': data.get('password'),  # Don't sanitize passwords
+            'enable_post_exploit': bool(data.get('enable_post_exploit', True)),
+            'enable_lateral_movement': bool(data.get('enable_lateral_movement', False)),
+            'attack_profile': sanitize_string(data.get('attack_profile', 'balanced'), 50),
+            'notification_email': sanitize_string(data.get('notification_email', ''), 256) if data.get('notification_email') else None
+        }
+        
+        # Encrypt sensitive data before storage
+        encrypted_config = encrypt_sensitive_data(config)
+        
+        manager = CampaignManager(campaign_id, encrypted_config)
+        active_campaigns[campaign_id] = manager
+        
+        # Log campaign creation (don't log sensitive data)
+        log_campaign_event(app_logger, 'created', campaign_id, f'Campaign: {config["name"]}, Domain: {config["domain"]}')
+        audit_logger.info(f'Campaign created', extra={'campaign_id': campaign_id, 'ip_address': client_ip})
+        
+        # Start campaign
+        manager.start()
+        
+        return jsonify({
+            'campaign_id': campaign_id,
+            'status': 'created',
+            'message': 'Campaign started successfully'
+        }), 201
+        
+    except Exception as e:
+        app_logger.error(f'Failed to create campaign: {e}')
+        return jsonify({'error': f'Failed to create campaign: {str(e)}'}), 500
 
 @app.route('/api/campaigns/<campaign_id>', methods=['GET'])
+@rate_limit(max_requests=60, window_seconds=60)
 def get_campaign(campaign_id):
     """Get campaign status"""
     if campaign_id not in active_campaigns:
@@ -226,6 +334,7 @@ def get_campaign(campaign_id):
     return jsonify(manager.get_status())
 
 @app.route('/api/campaigns/<campaign_id>/stop', methods=['POST'])
+@rate_limit(max_requests=20, window_seconds=60)
 def stop_campaign(campaign_id):
     """Stop running campaign"""
     if campaign_id not in active_campaigns:
@@ -233,6 +342,10 @@ def stop_campaign(campaign_id):
     
     manager = active_campaigns[campaign_id]
     manager.stop()
+    
+    # Log stopping event
+    log_campaign_event(app_logger, 'stopped', campaign_id)
+    audit_logger.warning(f'Campaign stopped', extra={'campaign_id': campaign_id, 'ip_address': request.remote_addr})
     
     return jsonify({
         'campaign_id': campaign_id,
@@ -359,5 +472,13 @@ def handle_campaign_unsubscription(data):
 # ============================================================================
 
 if __name__ == '__main__':
+    # Initialize logging
+    app_logger.info('Starting ADBasher Web Dashboard')
+    app_logger.info(f'Logs directory: {os.path.abspath("logs")}')
+    
     # Run with SocketIO
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    try:
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    except Exception as e:
+        app_logger.critical(f'Fatal error starting server: {e}')
+        raise
