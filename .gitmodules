@@ -7,3 +7,6 @@
 [submodule "2 quick/CVE-2020-1472"]
 	path = 2 quick/CVE-2020-1472
 	url = https://github.com/dirkjanm/CVE-2020-1472.git
+[submodule "2 quick/zerologon"]
+	path = 2 quick/zerologon
+	url = https://github.com/risksense/zerologon.git
