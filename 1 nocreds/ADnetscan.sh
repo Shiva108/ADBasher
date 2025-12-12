@@ -1,16 +1,30 @@
 #!/bin/bash
+set -euo pipefail
+
+# Function to show usage
+usage() {
+    echo "Usage: $0 <IP_RANGE> [DOMAIN]"
+    echo "Example: $0 192.168.123.1/24 domain.local"
+    exit 1
+}
 
 # Check for root privileges
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
+  echo "[-] Please run as root"
   exit 1
 fi
 
+# Check dependencies
+for cmd in grc nmap crackmapexec; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "[-] Error: $cmd is not installed."
+        exit 1
+    fi
+done
+
 # Validate input parameters
 if [ $# -lt 1 ]; then
-  echo -e "\nSyntax: ADnetscan.sh 'IP range' ['domain']"
-  echo "Example: ./ADnetscan.sh 192.168.123.1/24 domain.local"
-  exit 1
+    usage
 fi
 
 net="$1"

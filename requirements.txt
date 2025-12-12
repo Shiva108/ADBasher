@@ -1,0 +1,5 @@
+pwntools
+python-ldap
+impacket
+requests
+ldap3

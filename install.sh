@@ -1,44 +1,84 @@
 #!/bin/bash
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
+set -euo pipefail
+
+# Ensure script is run as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"
+  exit 1
 fi
 
-echo "ADBasher Installer, tested on Kali and Parrot"
-sudo apt install --fix-missing -y
-sudo apt update && apt autoremove && apt autoclean
-echo "Current OS version is:"
-sudo uname -a
-sleep 3
-sudo apt install grc crackmapexec impacket-scripts msfpc libsasl2-dev python-dev libldap2-dev libssl-dev
+echo "========================================="
+echo "      ADBasher Installer v2.0            "
+echo "========================================="
 
-# cd 2\ quick/ || exit
-# sudo git clone https://github.com/dirkjanm/CVE-2020-1472.git
-# sudo git clone https://github.com/rth0pper/zerologon.git
-# cd .. || exit
+# System Update
+echo "[*] Updating system packages..."
+apt-get update -qq
 
-cd 3\ nopass/spray/ || exit
-git clone https://github.com/Hackndo/sprayhound.git
-cd sprayhound || exit
-pip install -r requirements.txt
-sudo python3 setup.py install
-cd .. || exit
+# Install Dependencies
+echo "[*] Installing system dependencies..."
+DEPS=(
+    grc
+    crackmapexec
+    python3-dev
+    python3-pip
+    libsasl2-dev
+    libldap2-dev
+    libssl-dev
+    curl
+    gnupg
+    apt-transport-https
+    git
+)
+apt-get install -y --no-install-recommends "${DEPS[@]}"
 
-echo ""
-echo "Installing Powershell for Linux "
-echo " "
-sleep 3
-# If you wish to download instead: https://github.com/PowerShell/PowerShell/releases/tag/v7.3.1
-# Install system components
-sudo apt update  && sudo apt install -y curl gnupg apt-transport-https
-# Import the public repository GPG keys
-curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-# Register the Microsoft Product feed
-sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list'
+# Install Python Requirements
+echo "[*] Installing Python dependencies..."
+if [ -f "requirements.txt" ]; then
+    pip3 install -r requirements.txt
+else
+    echo "[!] requirements.txt not found!"
+fi
+
+# Initialize Submodules
+echo "[*] Initializing git submodules..."
+# We assume the user might not be in a git repo if they just downloaded the folder,
+# but if they are, we ensure submodules are pulled.
+if [ -d ".git" ]; then
+    git submodule update --init --recursive
+else
+    echo "[!] Not a git repository, skipping submodule update."
+fi
+
+# Specific Submodule Install Steps (if any needed beyond python deps)
+echo "[*] Configuring submodules..."
+if [ -d "3 nopass/spray/sprayhound" ]; then
+    echo " -> Configuring SprayHound..."
+    pushd "3 nopass/spray/sprayhound" >/dev/null
+    if [ -f "setup.py" ]; then
+        python3 setup.py install
+    fi
+    popd >/dev/null
+fi
+
 # Install PowerShell
-sudo apt update && sudo apt install -y powershell
-# Send command to pwsh for installing pwsh module
-eval "pwsh -c {Install-Module -Name WindowsCompatibility}"
+if ! command -v pwsh &> /dev/null; then
+    echo "[*] Installing PowerShell..."
+    # Import the public repository GPG keys
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+    # Register the Microsoft Product feed
+    sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list'
+    apt-get update -qq && apt-get install -y powershell
+    # Install WindowsCompatibility module
+    pwsh -c "Install-Module -Name WindowsCompatibility -Force"
+else
+    echo "[*] PowerShell already installed."
+fi
 
-sudo chmod -R +x ./*.sh
-sudo cat ./README.md | more
+# Permissions
+echo "[*] Setting permissions..."
+chmod +x ./**/*.sh 2>/dev/null || true
+
+echo "========================================="
+echo "      Installation Complete!             "
+echo "========================================="
