@@ -1,0 +1,71 @@
+# ADBasher Configuration File
+
+# Global Settings
+global:
+  session_dir: "~/.adbasher/sessions"
+  log_level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  timezone: "UTC"
+
+# Target Scope definition
+scope:
+  # CIDR ranges to include
+  include_cidrs:
+    - "192.168.1.0/24"
+    - "10.0.0.0/8"
+
+  # IP addresses or CIDRs to strictly exclude (e.g., out of scope, critical infra)
+  exclude_ips:
+    - "192.168.1.1" # Gateway
+
+  # Domain names to target
+  target_domains:
+    - "example.local"
+
+# Operational Security (OpSec) & Evasion Settings
+evasion:
+  mode: "standard" # options: standard, stealth, aggressive
+
+  # Timing (seconds)
+  jitter_min: 5
+  jitter_max: 30
+
+  # Network
+  randomize_mac: true
+  fragment_packets: false
+
+  # Behavioral
+  work_hours_only: false # If true, pauses execution outside 09:00-17:00
+  throttle_requests: true # Limit concurrent connections
+
+# Module Configuration
+modules:
+  # Phase 1: Reconnaissance
+  recon:
+    enabled: true
+    passive_only: false
+    tools:
+      - "nmap"
+      - "responder"
+      - "ldap_anonymous"
+
+  # Phase 2: Vulnerability Analysis
+  vuln_analysis:
+    enabled: true
+    auto_exploit: false # If true, attempts to exploit found CVES immediately
+
+  # Phase 3: Credential Attacks
+  credential_attacks:
+    enabled: true
+    password_spray:
+      enabled: true
+      max_attempts_per_user: 3
+      lockout_threshold: 10 # Stop if lockout policy is lower than this
+
+# Reporting
+reporting:
+  format:
+    - "md"
+    - "json"
+    - "html"
+  include_screenshots: true
+  sanitized_creds: false # If true, masks passwords in report

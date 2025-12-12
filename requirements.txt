@@ -3,3 +3,9 @@ python-ldap
 impacket
 requests
 ldap3
+# Core Framework Dependencies
+sqlalchemy
+pyyaml
+rich
+pydantic
+dnspython
