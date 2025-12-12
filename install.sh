@@ -40,6 +40,10 @@ else
     echo "[!] requirements.txt not found!"
 fi
 
+# Install GitAuto dependencies
+echo "[*] Installing GitAuto dependencies..."
+pip3 install GitPython PyYAML rich
+
 # Initialize Submodules
 echo "[*] Initializing git submodules..."
 # We assume the user might not be in a git repo if they just downloaded the folder,
@@ -78,6 +82,7 @@ fi
 # Permissions
 echo "[*] Setting permissions..."
 chmod +x ./**/*.sh 2>/dev/null || true
+chmod +x scripts/gitauto.py scripts/gitauto-cli.sh scripts/gitauto-cron.sh 2>/dev/null || true
 
 echo "========================================="
 echo "      Installation Complete!             "

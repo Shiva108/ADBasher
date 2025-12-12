@@ -1,0 +1,131 @@
+# GitAuto Configuration File
+#
+# This file controls the behavior of the GitAuto automated Git management system.
+# Copy this to your repository root as .gitauto.yaml and customize as needed.
+
+# ============================================================================
+# AUTOMATION SETTINGS
+# ============================================================================
+
+automation:
+  # Enable/disable all automation
+  enabled: true
+
+  # Dry run mode - analyze and report without making changes
+  dry_run: false
+
+  # Automatically commit uncommitted changes
+  auto_commit: true
+
+  # Automatically push commits to remote
+  auto_push: true
+
+  # Automatically pull from remote before operations
+  auto_pull: true
+
+# ============================================================================
+# COMMIT SETTINGS
+# ============================================================================
+
+commits:
+  # Template for automated commit messages
+  # Available placeholders: {description}, {timestamp}, {files}
+  message_template: "chore: automated commit - {description}"
+
+  # Sign commits with GPG
+  sign_commits: false
+
+  # GPG key ID (leave empty to use default)
+  gpg_key: ""
+
+# ============================================================================
+# CONFLICT RESOLUTION
+# ============================================================================
+
+conflicts:
+  # Strategy for resolving merge conflicts
+  # Options: ours (keep local), theirs (keep remote), manual, skip
+  strategy: "ours"
+
+  # Enable automatic conflict resolution
+  auto_resolve: true
+
+# ============================================================================
+# SUBMODULE MANAGEMENT
+# ============================================================================
+
+submodules:
+  # Automatically update submodules
+  auto_update: true
+
+  # Update submodules recursively
+  recursive: true
+
+# ============================================================================
+# SAFETY SETTINGS
+# ============================================================================
+
+safety:
+  # Create backups (stash) before major operations
+  create_backups: true
+
+  # Number of days to retain backup stashes
+  backup_retention_days: 7
+
+  # Require clean working tree before operations (strict mode)
+  require_clean_tree: false
+
+# ============================================================================
+# REMOTE OPERATIONS
+# ============================================================================
+
+remote:
+  # Default remote name
+  default_remote: "origin"
+
+  # Default branch name
+  default_branch: "main"
+
+  # Number of retry attempts for push operations
+  push_retries: 3
+
+  # Delay between retry attempts (seconds)
+  retry_delay: 5
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+
+  # Log file path (relative to repository root)
+  file: ".gitauto/logs/gitauto.log"
+
+  # Enable JSON structured logs
+  json_logs: true
+
+  # Enable console output
+  console_output: true
+
+# ============================================================================
+# EXCLUSIONS
+# ============================================================================
+
+exclusions:
+  # Specific paths to exclude from automation
+  paths:
+    # - "sensitive/directory"
+    # - "config/secrets.yml"
+
+  # File patterns to exclude (supports wildcards)
+  patterns:
+    - "*.log"
+    - "*.tmp"
+    - "*.swp"
+    - "__pycache__/"
+    - "node_modules/"
+    - ".env"
+    - ".env.*"
+    - "*.pyc"
