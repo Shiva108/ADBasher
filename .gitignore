@@ -1,7 +1,6 @@
 notes.md
 .gitignore
 launch.json
-prep.sh
 .vscode
 1 nocreds/nmap_kerb_
 3 nopass/sprayhound
