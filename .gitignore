@@ -6,7 +6,6 @@ launch.json
 prep.sh
 .vscode
 1 nocreds/nmap_kerb_
-1 nocreds/PetitPotam
 3 nopass/sprayhound
 .gitignore
 1 nocreds/PetitPotam
