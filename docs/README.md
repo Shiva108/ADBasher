@@ -111,7 +111,7 @@ This guide is designed to be used:
 
 ## Document Navigation
 
-```
+```text
 docs/
 ├── AD_PENETRATION_TESTING_GUIDE.md  ← Start here (Sections 1-4)
 ├── sections/

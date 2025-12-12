@@ -77,18 +77,20 @@ Your report should enable the client to both fix findings AND detect future atta
 
 #### Common Patterns Across AD Environments
 
-**Most Prevalent Weaknesses (Ranked by Frequency):**
+**Most Prevalent Weaknesses:**
 
-1. **Kerberoastable service accounts with weak passwords** (87% of environments)
-   - _Remediation:_ 25+ character passwords, AES encryption, managed service accounts
-2. **Lack of MFA on privileged accounts** (73%)
+Based on publicly available industry research (Verizon DBIR, SANS surveys, SpecterOps publications) and penetration testing community consensus:
+
+1. **Kerberoastable service accounts with weak passwords** - Very prevalent finding across most environments
+   - _Remediation:_ 25+ character passwords, AES encryption, group managed service accounts (gMSA)
+2. **Lack of MFA on privileged accounts** - Widespread issue per multiple industry reports
    - _Remediation:_ Implement MFA for all admins, VPN, and external services
-3. **Excessive ACL permissions** (69%)
+3. **Excessive ACL permissions** - Common BloodHound finding
    - _Remediation:_ Regular ACL audits, principle of least privilege
-4. **Local admin proliferation** (54%)
+4. **Local admin proliferation** - Standard misconfiguration in unmanaged environments
    - _Remediation:_ Implement LAPS, tiered admin model
-5. **Unconstrained delegation** (23%)
-   - _Remediation:_ Migrate to constrained delegation or RBCD
+5. **Unconstrained delegation** - Less common but critical when present
+   - _Remediation:_ Migrate to constrained delegation or resource-based constrained delegation (RBCD)
 
 #### What Makes Environments Hard to Compromise?
 
@@ -167,7 +169,8 @@ Your report should enable the client to both fix findings AND detect future atta
 
 1. **"Active Directory Security Assessment" by Sean Metcalf (Trimarc)**
 
-   - https://adsecurity.org
+   - ADSecurity.org by Sean Metcalf (comprehensive AD security resource)
+     - Note: Site may be intermittently unavailable; search "Sean Metcalf Active Directory" or check Internet Archive for content
    - Comprehensive AD attack and defense techniques
 
 2. **"Attacking Active Directory" by Nikhil Mittal**
@@ -181,7 +184,7 @@ Your report should enable the client to both fix findings AND detect future atta
    - Original BloodHound research and methodology
 
 4. **"The Dog Whisperer's Handbook" (BloodHound Guide)**
-   - https://bloodhound.readthedocs.io
+   - <https://bloodhound.specterops.io> (Current BloodHound CE Documentation)
    - Comprehensive BloodHound usage guide
 
 #### Tools and Frameworks
@@ -195,7 +198,8 @@ Your report should enable the client to both fix findings AND detect future atta
 
 2. **CrackMapExec** - Multi-protocol authentication and exploitation
 
-   - https://github.com/byt3bl33d3r/CrackMapExec
+   - <https://github.com/byt3bl33d3r/CrackMapExec> (Original, no longer maintained)
+   - **Note:** Consider NetExec (<https://github.com/Pennyw0rth/NetExec>), the actively maintained fork
    - Rapid credential testing and lateral movement
 
 3. **BloodHound CE** - Active Directory attack path analysis
@@ -228,45 +232,6 @@ Your report should enable the client to both fix findings AND detect future atta
    - https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-security-baselines
    - Official hardening guidelines
 
-#### Training and Certifications
-
-**Recommended Courses:**
-
-1. **CRTO (Certified Red Team Operator) by Zero-Point Security**
-
-   - Focus on AD attacks and evasion
-   - Hands-on lab environment
-
-2. **CRTP (Certified Red Team Professional) by Pentester Academy**
-
-   - AD-specific red teaming
-   - Budget-friendly option
-
-3. **PNPT (Practical Network Penetration Tester) by TCM Security**
-
-   - Includes AD penetration testing module
-   - Practical, hands-on approach
-
-4. **OSEP (Offensive Security Experienced Penetration Tester)**
-   - Advanced evasion and AD attacks
-   - Challenging 48-hour exam
-
-**Free Learning Resources:**
-
-1. **HackTheBox / TryHackMe AD Labs**
-
-   - Practical AD attack scenarios
-   - Progress from beginner to advanced
-
-2. **GOAD (Game of Active Directory)**
-
-   - https://github.com/Orange-Cyberdefense/GOAD
-   - Multi-domain AD lab environment
-
-3. **Attacking and Defending Active Directory (YouTube Series)**
-   - By John Hammond, IppSec, and others
-   - Free video walkthroughs
-
 #### Research Papers and Conferences
 
 **Key Papers:**
@@ -275,18 +240,12 @@ Your report should enable the client to both fix findings AND detect future atta
 2. **"Not A Security Boundary: Breaking Forest Trusts"** - Will Schroeder
 3. **"Certified Pre-Owned: Abusing AD Certificate Services"** - Will Schroeder & Lee Christensen
 
-**Conferences with AD Content:**
-
-1. **DEF CON** - Red/Blue team tracks often include AD research
-2. **Black Hat** - Enterprise security and AD specific talks
-3. **BlueHat** - Microsoft security conference
-4. **SANS Summits** - Practical defensive and offensive techniques
-
 #### Community and Support
 
 **Active Communities:**
 
-1. **BloodHound Slack** - https://bloodhoundhq.slack.com
+1. **BloodHound Slack** - Request invitation via BloodHound GitHub or SpecterOps website
+   - Workspace requires invitation, not publicly accessible
    - Active community for AD attack path analysis
 2. **NetSecFocus Trophy Room Discord** - AD pentesting discussions
 

@@ -98,40 +98,40 @@ Prerequisites: Basic AD knowledge, Linux proficiency, Python 3.10+
 
 **Additional Section Files:**
 
-5. [Privilege Escalation Paths](sections/05_privilege_escalation.md)
+1. [Privilege Escalation Paths](sections/05_privilege_escalation.md)
 
    - 5.1 Exploiting Misconfigurations
    - 5.2 ACL Abuse Techniques
    - 5.3 GPO Manipulation
    - 5.4 Delegation Attacks
 
-6. [Lateral Movement](sections/06_lateral_movement.md)
+2. [Lateral Movement](sections/06_lateral_movement.md)
 
    - 6.1 Pass-the-Hash and Pass-the-Ticket
    - 6.2 Remote Code Execution Methods
    - 6.3 Session Hijacking
    - 6.4 Golden and Silver Ticket Attacks
 
-7. [Persistence Mechanisms](sections/07_persistence.md)
+3. [Persistence Mechanisms](sections/07_persistence.md)
 
    - 7.1 Backdoor Accounts
    - 7.2 Skeleton Keys and Directory Replication
    - 7.3 AdminSDHolder Abuse
 
-8. [Case Studies](sections/08_case_studies.md)
+4. [Case Studies](sections/08_case_studies.md)
 
    - 8.1 Real-World Penetration Test Scenario
    - 8.2 Lessons Learned and Common Pitfalls
 
-9. [Conclusion](sections/09_conclusion.md)
+5. [Conclusion](sections/09_conclusion.md)
 
    - 9.1 Key Takeaways
    - 9.2 Further Resources
 
-10. [Appendices](sections/10_appendices.md)
-    - 10.1 Pre-Engagement Checklist
-    - 10.2 Post-Engagement Checklist
-    - 10.3 ADBasher Command Reference:
+6. [Appendices](sections/10_appendices.md)
+   - 10.1 Pre-Engagement Checklist
+   - 10.2 Post-Engagement Checklist
+   - 10.3 ADBasher Command Reference:
 
 ## 1. Introduction
 
@@ -157,18 +157,11 @@ This guide provides practical, hands-on instruction for conducting professional 
 
 #### System Requirements
 
-**Recommended Operating System:**
-
-- Kali Linux 2024.x (primary)
-- Parrot Security OS 5.x
-- Ubuntu 22.04+ with security tooling
-
-**Hardware Specifications:**
-
-- CPU: 4+ cores
-- RAM: 8GB minimum (16GB recommended)
-- Storage: 50GB free space
-- Network: Direct access to target AD environment
+- **Operating System:** Kali Linux 2024.x or later (current: 2025.x), Parrot OS, or Ubuntu 22.04+
+- **Python:** 3.10-3.12 (Note: Some tools may not support Python 3.13+ due to breaking changes)
+- **RAM:** 8GB minimum, 16GB+ recommended for large environments
+- **Storage:** 50GB+ free space for session data and outputs
+- **Network:** Direct access to target AD environment
 
 #### Installing ADBasher
 
@@ -176,7 +169,8 @@ This guide provides practical, hands-on instruction for conducting professional 
 
 ```bash
 # Clone with submodules
-git clone --recurse-submodules https://github.com/yourusername/ADBasher.git
+# Clone repository (adjust URL to actual ADBasher repository location)
+git clone --recurse-submodules <ADBasher_Repository_URL>
 cd ADBasher
 
 # Verify repository structure
@@ -231,8 +225,11 @@ ADBasher integrates with industry-standard tools. Ensure these are installed:
 
 ```bash
 # CrackMapExec (CME) - Multi-protocol authentication testing
+# Note: Original CME is no longer maintained; consider NetExec fork
 sudo apt install crackmapexec -y
-crackmapexec --version  # Should be 5.4.0+
+# If not in repos, install via pipx:
+# pipx install crackmapexec
+crackmapexec --version  # Verify installation
 
 # Impacket Suite - Python network protocol implementations
 sudo apt install impacket-scripts -y
@@ -674,7 +671,9 @@ bloodhound-python -d contoso.local -u john.doe -p 'Password123' \
 sudo neo4j start
 
 # Upload ZIP to BloodHound GUI
-# Navigate to http://localhost:7474
+# Navigate to http://localhost:7474 (default Neo4j web interface port)
+# Default credentials: neo4j/neo4j (you'll be prompted to change password)
+# If connection fails, check Neo4j configuration or ensure service is running
 # Import the ZIP file
 
 # Key queries to run in BloodHound:
@@ -983,7 +982,7 @@ john --wordlist=/usr/share/wordlists/rockyou.txt kerberoast_hashes.txt
 # Error: KDC_ERR_ETYPE_NOSUPP
 # Cause: Only AES encryption enabled, RC4 disabled
 # Solution: Request tickets with AES support
-GetUserSPNs.py -request-user svc_sql -dc-ip 192.168.10.10 contoso.local/john.doe
+GetUserSPNs.py -request-user svc_sql -dc-ip 192.168.10.10 contoso.local/user:pass
 
 # Error: Kerberos SessionError: KDC_ERR_S_PRINCIPAL_UNKNOWN
 # Cause: SPN doesn't exist or typo in service name

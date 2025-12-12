@@ -1,16 +1,18 @@
-## 8. Case Studies
+# 8. Case Studies
 
 This section presents real-world penetration testing scenarios demonstrating how ADBasher techniques are applied in practice.
 
-### 8.1 Real-World Penetration Test Scenario
+## 8.1 Real-World Penetration Test Scenario
 
 **Scenario: Financial Services Company - External Penetration Test to Domain Admin**
 
-#### Engagement Overview
+> [!NOTE] > **Composite Scenario:** This case study represents a composite of common attack patterns observed across multiple real-world engagements. Company names, specific details, and identifying information have been anonymized or fictionalized to protect client confidentiality while illustrating realistic penetration testing methodology.
 
-**Client:** Regional financial services firm (Consolidated Finance Corp)  
+### Engagement Overview
+
+**Client:** Consolidated Finance Corp (fictional name)  
 **Scope:** External penetration test with goal of demonstrating AD compromise impact  
-**Duration:** 5 business days  
+**Duration:** 5 business days (typical for small-medium environments)  
 **Rules of Engagement:** Standard business hours (9 AM - 5 PM), no social engineering, no DoS attacks  
 **Starting Point:** External IP range only (no internal access, no credentials)
 
@@ -295,9 +297,9 @@ smbclient //fileserver01/Finance$ -U "PentestAdmin" --use-krb5-ccache
    - Implement just-in-time (JIT) admin access
    - Conduct regular AD security assessments
 
-### 8.2 Lessons Learned and Common Pitfalls
+## 8.2 Lessons Learned and Common Pitfalls
 
-#### Lessons from the Case Study
+### Lessons from the Case Study
 
 **What Worked Well:**
 
@@ -313,9 +315,9 @@ smbclient //fileserver01/Finance$ -U "PentestAdmin" --use-krb5-ccache
 3. **No Anomaly Detection:** Unusual authentication patterns not flagged
 4. **Missing MFA:** VPN access with only username/password
 
-#### Common Pitfalls to Avoid
+### Common Pitfalls to Avoid
 
-##### 1. Account Lockout Disasters
+#### 1. Account Lockout Disasters
 
 **Pitfall:** Aggressive password spraying locks out entire organization.
 
@@ -339,7 +341,7 @@ crackmapexec smb DC01 -u '' -p '' --pass-pol
 # ADBasher stealth mode does this automatically
 ```
 
-##### 2. Noisy Network Scanning
+#### 2. Noisy Network Scanning
 
 **Pitfall:** Full port scan of entire /16 network triggers IDS alerts.
 
@@ -361,7 +363,7 @@ nmap -sT -p 88,135,139,389,445,636,3268,3269,3389 -T2 10.0.10.0/24
 # ADBasher scans only AD-related ports with timing jitter
 ```
 
-##### 3. Forgetting to Clean Up Persistence
+#### 3. Forgetting to Clean Up Persistence
 
 **Pitfall:** Leave backdoor accounts in production Active Directory.
 
@@ -380,7 +382,7 @@ Engagement ends → Client discovers backdoor 6 months later
 # Coordinate with client SOC for validation
 ```
 
-##### 4. Over-Reliance on Automation
+#### 4. Over-Reliance on Automation
 
 **Pitfall:** Running ADBasher in aggressive mode without understanding what it does.
 
@@ -403,7 +405,7 @@ Engagement ends → Client discovers backdoor 6 months later
 # Monitor logs in real-time during execution
 ```
 
-##### 5. Insufficient Documentation
+#### 5. Insufficient Documentation
 
 **Pitfall:** Inadequate notes prevent accurate reporting and cleanup.
 
@@ -428,7 +430,7 @@ sqlite3 ~/.adbasher/sessions/<SESSION_ID>/session.db \
 # Take additional notes for manual actions
 ```
 
-#### Red Team vs Penetration Testing Mindset
+### Red Team vs Penetration Testing Mindset
 
 **Penetration Test (This Guide's Focus):**
 
@@ -453,41 +455,41 @@ sqlite3 ~/.adbasher/sessions/<SESSION_ID>/session.db \
 | Lab environment / training   | Aggressive mode  | Maximum speed, detection irrelevant |
 | Compliance audit             | Standard mode    | Document everything, moderate speed |
 
-#### Statistics from Real Engagements
+### Statistics from Real Engagements
 
-Based on 50+ AD penetration tests conducted with ADBasher:
+> [!IMPORTANT] > **Methodology Note:** The patterns and observations below are based on industry research, publicly available penetration testing reports, and general community knowledge rather than statistically rigorous research from ADBasher-specific engagements. Specific percentages vary significantly by industry, organization size, security maturity, and geographic region.
 
-**Time to Initial Access:**
+**Common Patterns Observed in AD Environments:**
 
-- External pentest: 2-8 hours (avg: 4.5 hours)
-- Internal pentest: 0-2 hours (avg: 0.5 hours, credentials provided)
+Based on publicly available research (Verizon DBIR, SANS surveys, SpecterOps research) and penetration testing community consensus:
 
-**Time to Domain Admin:**
+1. **Kerberoastable accounts with weak passwords** - Very prevalent finding
+   - _Remediation:_ 25+ character passwords, AES encryption, group managed service accounts (gMSA)
+2. **Lack of MFA on privileged accounts** - Widespread across many environments
+   - _Remediation:_ Implement MFA for all admins, VPN, and external services
+3. **Excessive ACL permissions** - Common BloodHound finding
+   - _Remediation:_ Regular ACL audits, principle of least privilege
+4. **Local admin proliferation** - Standard misconfiguration in unmanaged environments
+   - _Remediation:_ Implement LAPS, tiered admin model
+5. **AS-REP roasting opportunities** - Less common but still regularly encountered
+   - _Remediation:_ Enable Kerberos pre-authentication for all accounts
 
-- With misconfigurations: 4-48 hours (avg: 18 hours)
-- Well-hardened environment: 48-120 hours or unable
+**Common Attack Vector Success Patterns:**
 
-**Most Common Findings:**
+Industry observations suggest:
 
-1. Kerberoastable accounts with weak passwords (87% of engagements)
-2. Lack of MFA on privileged accounts (73%)
-3. Excessive ACL permissions via BloodHound (69%)
-4. Local admin on servers via domain users (54%)
-5. AS-REP roasting enabled (31%)
+- **Password spraying** - Frequently successful for initial access when weak password policies exist
+- **Kerberoasting** - Common privilege escalation path when service accounts have weak passwords
+- **BloodHound-identified ACL abuse** - Reveals non-obvious privilege escalation paths
+- **Unconstrained delegation** - Less common but critical when present
 
-**Most Effective Attack Vectors:**
+**Detection Challenges:**
 
-1. Password spraying (62% success rate for initial access)
-2. Kerberoasting → privilege escalation (48%)
-3. BloodHound-identified ACL abuse (41%)
-4. Unconstrained delegation (23%, but critical when present)
+Many AD attack techniques have low detection rates in environments without:
 
-**Detection Rates:**
+- Dedicated SIEM with AD-specific rules
+- Azure ATP / Microsoft Defender for Identity
+- Regular log review and anomaly detection
+- Behavioral analytics
 
-- Password spraying detected: 15%
-- Kerberoasting detected: 8%
-- BloodHound collection detected: 12%
-- Lateral movement detected: 31%
-- Golden ticket usage detected: 3%
-
-**Key Takeaway:** Most AD environments have fundamental security gaps. ADBasher systematically identifies them, but success depends on understanding the techniques, practicing good OPSEC, and adapting to each unique environment.
+**Key Takeaway:** Most AD environments have fundamental security gaps that penetration testers systematically identify. ADBasher's value lies in comprehensive coverage and automation, but success depends on understanding techniques, practicing good OPSEC, and adapting to each unique environment. Actual findings and timeframes vary significantly based on target organization's security posture.
