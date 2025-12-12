@@ -268,6 +268,29 @@ class Orchestrator:
             self.logger.warning("No DCs found. Skipping credential attacks.")
             return
         
+        # 0. AS-REP Roasting (no creds required)
+        asrep_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '3 nopass/automated', 'asreproast.py')
+        
+        for dc in dcs:
+            if dc.domain:
+                self.logger.info(f"Launching AS-REP roast against {dc.domain}")
+                console.print(f"[cyan]  -> AS-REP Roast: {dc.domain}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    asrep_script,
+                    "--session-dir", self.session_dir,
+                    "--domain", dc.domain,
+                    "--dc-ip", dc.ip_address
+                ]
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.warning(f"AS-REP roast failed: {e}")
+        
         # 1. Password Spray
         spray_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '3 nopass/automated', 'password_spray.py')
         
@@ -406,13 +429,15 @@ class Orchestrator:
                     self.logger.debug(f"Failed: {e}")
 
     def run_reporting(self):
-        """Generate comprehensive penetration test report."""
+        """Generate comprehensive penetration test reports (MD + HTML)."""
+        # 1. Markdown Report
         report_path = os.path.join(self.session_dir, "report.md")
         
         # Query database for results
         session = self.db.get_session()
         targets = session.query(Target).all()
         credentials = session.query(Credential).all()
+        vulnerabilities = session.query(Vulnerability).all() if hasattr(self.db, 'Vulnerability') else []
         session.close()
         
         with open(report_path, "w") as f:
@@ -424,7 +449,8 @@ class Orchestrator:
             f.write(f"- **Targets Discovered:** {len(targets)}\n")
             f.write(f"- **Credentials Compromised:** {len(credentials)}\n")
             admin_count = sum(1 for c in credentials if c.is_admin)
-            f.write(f"- **Admin Credentials:** {admin_count}\n\n")
+            f.write(f"- **Admin Credentials:** {admin_count}\n")
+            f.write(f"- **Vulnerabilities:** {len(vulnerabilities)}\n\n")
             
             f.write("## Discovered Targets\n")
             f.write("| IP Address | Hostname | Domain | Type |\n")
@@ -454,5 +480,14 @@ class Orchestrator:
             f.write(f"- BloodHound data: `{self.session_dir}/bloodhound_data/`\n")
             f.write(f"- Database: `{self.session_dir}/session.db`\n")
         
-        self.logger.info(f"Report generated at {report_path}")
-        console.print(f"[bold green]Report saved: {report_path}[/bold green]")
+        self.logger.info(f"Markdown report generated at {report_path}")
+        
+        # 2. HTML Report
+        try:
+            from reporting.html_report import generate_html_report
+            html_path = generate_html_report(self.session_dir, self.session_id)
+            self.logger.info(f"HTML report generated at {html_path}")
+            console.print(f"[bold green]Reports saved:\n  - {report_path}\n  - {html_path}[/bold green]")
+        except Exception as e:
+            self.logger.warning(f"HTML report generation failed: {e}")
+            console.print(f"[bold green]Report saved: {report_path}[/bold green]")
