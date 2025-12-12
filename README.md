@@ -1,83 +1,167 @@
 # ADBasher
-**Under Development**
+
+**Version 1.0.0 - Fully Automated AD Penetration Testing Framework**
 
 <div align="center">
-    <img src="/resources/ADBasherlogo.png" alt="Logo" width="300"> <!-- Adjust the width as needed -->
+    <img src="/resources/ADBasherlogo.png" alt="Logo" width="300">
 </div>
 
-An Active Directory penetration testing framework written in shell script.
+An **unattended** Active Directory penetration testing framework written in Python and shell script.
 
-This repo is a shell-script implementation of the "Active Directory pentesting mind map" found here:
-https://github.com/esidate/pentesting-active-directory and seen here:
+This repo is an **automated implementation** of the "Active Directory pentesting mind map" found here:
+https://github.com/esidate/pentesting-active-directory
 
 ![Orange Pentesting AD](/resources/pentest_ad_dark_2022_11.svg "Orange Pentesting AD")
 
+---
 
-Version 0.4.0
-* Many scripts added
-* Userfriendliness improved with GPT
+## 🆕 What's New in V1.0
 
-Version 0.1.1
-* "No credentials" part is "PoC" done.
+### Core Infrastructure
 
-**Tested with:**
-* PowerShell 7.2.1 (for linux)
-* zsh 5.8 (x86_64-debian-linux-gnu)
-* GNU bash, version 5.1.4(1)-release
-* Metasploit v6.2.22-dev
-* Parrot OS 5.1 (Electro Ara) x86_64 / 6.0.0-2parrot1-amd64
-* Kali Rolling (2022.3) x64 2022-08-08
+- **Orchestration Engine** (`core/orchestrator.py`): State machine-driven execution
+- **Central Database** (SQLite): Persistent storage of targets, credentials, and findings
+- **Structured Logging**: JSON logs for SIEM integration
+- **Configuration Management**: YAML-based settings for scope and evasion
 
-**Todo:**
-* Pretty much everything!
+### Attack Lifecycle Automation
 
-**The famous tree:**
+1. **Phase 1: Reconnaissance**
 
-Will be updated...
+   - DNS domain discovery (`discover_domain.py`)
+   - LDAP anonymous enumeration (`ldap_anonymous_bind.py`)
+
+2. **Phase 2: Post-Exploitation Enumeration**
+
+   - BloodHound data collection (`bloodhound_collect.py`)
+   - Credential dumping with secretsdump (`secretsdump_auto.py`)
+
+3. **Phase 3: Credential Attacks**
+
+   - Password spraying with lockout protection (`password_spray.py`)
+   - Kerberoasting (`kerberoast.py`)
+   - Admin privilege detection (`check_admin.py`)
+
+4. **Phase 4: Lateral Movement**
+
+   - Pass-the-Hash attacks via CrackMapExec
+
+5. **Phase 5: Reporting**
+   - Automated markdown report generation
+   - Credential compromise tables
+   - Remediation recommendations
+
+### Unattended Features
+
+- **Credential Cascading**: Automatically re-runs modules when admin creds are found
+- **Error Handling**: Graceful degradation (continues on non-critical failures)
+- **Progress Tracking**: Rich progress bars and console output
+
+---
+
+## Installation
+
+```bash
+# Clone repository
+git clone https://github.com/Shiva108/ADBasher.git
+cd ADBasher
+
+# Install dependencies (Debian/Kali)
+sudo ./install.sh
+
+# Install Python requirements
+pip3 install -r requirements.txt
+```
+
+### Required Tools
+
+- **CrackMapExec**: `apt install crackmapexec`
+- **Impacket**: `pip3 install impacket`
+- **BloodHound Python**: `pip3 install bloodhound`
+- **DNSPython**: `pip3 install dnspython`
+
+---
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Target a domain
+./adbasher.py --target example.local
+
+# Target multiple IPs/domains
+./adbasher.py --target 192.168.1.0/24 example.local
+
+# OpSec mode
+./adbasher.py --target example.local --opsec stealth
+```
+
+### Configuration
+
+Edit `core/config.yaml` to customize:
+
+- Target scope (CIDR ranges, exclusions)
+- Evasion settings (jitter timing, MAC randomization)
+- Module enablement
+- Reporting preferences
+
+### Session Management
+
+All output is stored in `~/.adbasher/sessions/<SESSION_ID>/`:
+
+- `session.db`: SQLite database with all findings
+- `session_*.log`: Execution logs
+- `bloodhound_data/`: BloodHound ZIP files
+- `report.md`: Final penetration test report
+
+---
+
+## Tested With
+
+- PowerShell 7.2.1 (for Linux)
+- zsh 5.8 (x86_64-debian-linux-gnu)
+- GNU bash, version 5.1.4(1)-release
+- Parrot OS 5.1 (Electro Ara) x86_64
+- Kali Rolling (2024.4) x64
+
+---
+
+## Workflow
 
 ```
-*|-- 1 nocreds
-*|   |-- 1 nocreds/ADnetscan.sh
-*|   |-- 1 nocreds/ADpoison.sh
-*|   |-- 1 nocreds/bannergrap.sh
-*|   |-- 1 nocreds/Coercer
-*|   |-- 1 nocreds/coerce.sh
-*|   |-- 1 nocreds/findcertserv.sh
-*|   |-- 1 nocreds/FindDCip.sh
-*|   |-- 1 nocreds/kerbscan.sh
-*|   |-- 1 nocreds/ldapenum.sh
-*|   |-- 1 nocreds/nmapldap.sh
-*|   |-- 1 nocreds/PetitPotam
-*|   `-- 1 nocreds/smbscan.sh
-*|-- 2 quick
-*|   |-- 2 quick/CVE-2020-1472
-*|   |-- 2 quick/eternalblue.sh
-*|   |-- 2 quick/log4shell.sh
-*|   |-- 2 quick/msfscripts
-*|   |-- 2 quick/proxylogon.sh
-*|   |-- 2 quick/proxyshell.sh
-*|   |-- 2 quick/zerologon
-*|   |-- 2 quick/zeroscanmsf.sh
-*|   `-- 2 quick/zeroscan.sh
-*|-- 3 nopass
-*|   |-- 3 nopass/roast
-*|   `-- 3 nopass/spray
-*|-- 4 mitm
-*|-- 5 knownvulns
-*|-- 6 validcreds
-*|   |-- 6 validcreds/enumAD.sh
-*|   `-- 6 validcreds/rpccon.sh
-*|-- 7 privesc
-*|-- 8 weakADCSconfig
-*|-- adenum.sh
-*|-- install.sh
-*|-- prep.sh
-*|-- rainbow.sh
-*|-- resources
-*|   |-- resources/template.sh
-*|   `-- resources/treemaker.sh
-*`-- restartNM.sh
+ADBasher Orchestrator
+       ↓
+[Phase 1] Reconnaissance
+  ├─ discover_domain.py → Finds DCs via DNS
+  └─ ldap_anonymous_bind.py → Enumerates users
+       ↓
+[Phase 2] Credential Attacks
+  ├─ password_spray.py → Tests common passwords
+  ├─ kerberoast.py → Extracts TGS tickets
+  └─ check_admin.py → Identifies admin accounts
+       ↓ (if admin creds found)
+[Phase 3] Post-Exploitation
+  ├─ bloodhound_collect.py → AD attack paths
+  └─ secretsdump_auto.py → Dumps NTDS.dit
+       ↓
+[Phase 4] Lateral Movement
+  └─ Pass-the-Hash via CrackMapExec
+       ↓
+[Phase 5] Reporting
+  └─ Generates report.md
 ```
+
+---
+
+## Ethical Use Warning
+
+⚠️ **This tool is for authorized security testing only.** Unauthorized use against systems you do not own or have explicit permission to test is illegal and unethical.
+
+**Always obtain written authorization before use.**
+
+---
 
 ## License
+
 ADBasher is released under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
