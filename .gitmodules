@@ -4,3 +4,6 @@
 [submodule "1 nocreds/PetitPotam"]
 	path = 1 nocreds/PetitPotam
 	url = https://github.com/topotam/PetitPotam.git
+[submodule "2 quick/CVE-2020-1472"]
+	path = 2 quick/CVE-2020-1472
+	url = https://github.com/dirkjanm/CVE-2020-1472.git
