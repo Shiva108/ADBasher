@@ -1,7 +1,0 @@
-{"timestamp": "2025-12-12T23:20:37.372864Z", "level": "INFO", "logger": "adbasher.web", "message": "Starting ADBasher Web Dashboard", "module": "app", "function": "<module>", "line": 505}
-{"timestamp": "2025-12-12T23:20:37.372938Z", "level": "INFO", "logger": "adbasher.web", "message": "Logs directory: /app/logs", "module": "app", "function": "<module>", "line": 506}
-{"timestamp": "2025-12-12T23:20:37.373037Z", "level": "CRITICAL", "logger": "adbasher.web", "message": "Fatal error starting server: The Werkzeug web server is not designed to run in production. Pass allow_unsafe_werkzeug=True to the run() method to disable this error.", "module": "app", "function": "<module>", "line": 512}
-{"timestamp": "2025-12-12T23:21:29.335541Z", "level": "INFO", "logger": "adbasher.web", "message": "Starting ADBasher Web Dashboard", "module": "app", "function": "<module>", "line": 505}
-{"timestamp": "2025-12-12T23:21:29.335621Z", "level": "INFO", "logger": "adbasher.web", "message": "Logs directory: /app/logs", "module": "app", "function": "<module>", "line": 506}
-{"timestamp": "2025-12-12T23:21:29.665771Z", "level": "INFO", "logger": "adbasher.web", "message": "Starting ADBasher Web Dashboard", "module": "app", "function": "<module>", "line": 505}
-{"timestamp": "2025-12-12T23:21:29.665865Z", "level": "INFO", "logger": "adbasher.web", "message": "Logs directory: /app/logs", "module": "app", "function": "<module>", "line": 506}
