@@ -1,11 +1,19 @@
-pwntools
-python-ldap
-impacket
-requests
-ldap3
 # Core Framework Dependencies
-sqlalchemy
-pyyaml
-rich
-pydantic
-dnspython
+sqlalchemy>=2.0.0
+pyyaml>=6.0
+rich>=13.0.0
+pydantic>=2.0.0
+dnspython>=2.4.0
+
+# Security Testing Libraries
+impacket>=0.11.0
+ldap3>=2.9.0
+requests>=2.31.0
+
+# Optional: Enhanced Security
+pwntools>=4.11.0
+bloodhound>=1.6.0
+
+# Testing Dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0

@@ -108,7 +108,7 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def add_credential(self, username, domain, password=None, ntlm_hash=None, source="unknown", is_admin=False):
+    def add_credential(self, username, domain, password=None, ntlm_hash=None, source="unknown", is_admin=False, is_valid=True, cred_type=None):
         session = self.get_session()
         try:
             # Check for duplicates
@@ -123,7 +123,9 @@ class DatabaseManager:
                     password=password,
                     ntlm_hash=ntlm_hash,
                     source=source,
-                    is_admin=is_admin
+                    is_admin=is_admin,
+                    is_valid=is_valid,
+                    type=cred_type
                 )
                 session.add(cred)
                 session.commit()
@@ -133,3 +135,4 @@ class DatabaseManager:
             raise e
         finally:
             session.close()
+
