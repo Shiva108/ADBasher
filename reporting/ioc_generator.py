@@ -37,7 +37,10 @@ class IOCGenerator:
     """Generates IOCs from penetration test session"""
     
     def __init__(self, session_dir, session_id):
-        self.session_dir = session_dir
+        # Prevent Path Traversal by resolving absolute path and validating
+        self.session_dir = os.path.abspath(session_dir)
+        if not os.path.exists(self.session_dir):
+             raise ValueError(f"Session directory does not exist: {self.session_dir}")
         self.session_id = session_id
         self.iocs = {
             'file_hashes': [],

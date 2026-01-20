@@ -79,10 +79,11 @@ def smb_null_enum(session_dir, target_ip):
         
         # Fallback: rpcclient
         try:
-            rpc_cmd = f"rpcclient -U '' -N {target_ip} -c 'enumdomusers'"
+            # Safe execution without shell=True
+            rpc_cmd = ["rpcclient", "-U", "", "-N", target_ip, "-c", "enumdomusers"]
             result = subprocess.run(
                 rpc_cmd,
-                shell=True,
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=30
