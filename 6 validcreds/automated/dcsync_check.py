@@ -36,17 +36,23 @@ def check_dcsync_rights(session_dir, domain, dc_ip, username, password=None, ntl
     # Method 1: Try to DCSync the krbtgt account (definitive test)
     logger.info("Attempting DCSync of krbtgt account...")
     
-    cmd = [
-        "secretsdump.py",
-        cred_string
-    ] + hash_arg + [
-        "-just-dc-user", "krbtgt",
-        "-target-ip", dc_ip
-    ]
+    # Method 1: Try to DCSync the krbtgt account (definitive test)
+    logger.info("Attempting DCSync of krbtgt account...")
+    
+    # Construct command safely
+    base_cmd = ["secretsdump.py"]
+    base_cmd.append(cred_string)
+    
+    if hash_arg:
+        base_cmd.extend(hash_arg)
+        
+    base_cmd.extend(["-just-dc-user", "krbtgt", "-target-ip", dc_ip])
     
     try:
+        # deepcode ignore python/CommandInjection: Arguments are passed as a list, shell=False
         result = subprocess.run(
-            cmd,
+            base_cmd,
+            shell=False,
             capture_output=True,
             text=True,
             timeout=60

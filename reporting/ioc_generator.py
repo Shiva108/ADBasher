@@ -87,8 +87,16 @@ class IOCGenerator:
         ]
         
         for tool_dir in tool_paths:
-            if os.path.exists(tool_dir):
-                for root, dirs, files in os.walk(tool_dir):
+            # Safe Path Traversal check
+            # Verify tool_dir is actually inside session_dir
+            try:
+                # Resolve paths
+                abs_tool_dir = os.path.abspath(tool_dir)
+                abs_session_dir = os.path.abspath(self.session_dir)
+                
+                # Check if tool_dir starts with session_dir
+                if os.path.commonpath([abs_tool_dir, abs_session_dir]) == abs_session_dir and os.path.exists(abs_tool_dir):
+                    for root, dirs, files in os.walk(abs_tool_dir):
                     for file in files:
                         filepath = os.path.join(root, file)
                         
